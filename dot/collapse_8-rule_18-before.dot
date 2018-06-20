@@ -1,0 +1,44 @@
+strict digraph  {
+	graph [collapsed_nodes="['89', '97']",
+		label="collapse_8-rule_18-before"
+	];
+	node [label="\N"];
+	91	 [ancestor_target=False,
+		formula=X4v3,
+		hypothesis=False,
+		label=X4v3];
+	32	 [ancestor_target=False,
+		formula="(X3v3 imp q)",
+		hypothesis=False,
+		label="(X3v3 imp q)"];
+	107	 [ancestor_target=False,
+		formula="(X2v1 imp q)",
+		hypothesis=False,
+		label="(X2v1 imp q)"];
+	32 -> 107	 [composed=True,
+		style=dashed,
+		xlabel=1];
+	89	 [ancestor_target=False,
+		fillcolor=grey,
+		formula=X1v3,
+		hypothesis=False,
+		label=X1v3,
+		style=filled];
+	89 -> 91	 [ancestor=False,
+		dependencies=00000000000000000000001000000000000000000000000000000000,
+		xlabel=0];
+	97	 [ancestor_target=True,
+		fillcolor=grey,
+		formula=X1v3,
+		hypothesis=False,
+		label=X1v3,
+		style=filled];
+	107 -> 97	 [ancestor=True,
+		color=blue,
+		fontcolor=red,
+		path=1,
+		xlabel=1];
+	97 -> 32	 [ancestor=False,
+		dependencies=00000000000000000000001000000000000000000000000000000000,
+		xlabel=0];
+}
