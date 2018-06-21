@@ -1,7 +1,6 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
-import sys
 import argparse
 from graph import proof_graph as prg
 import compression as cmp

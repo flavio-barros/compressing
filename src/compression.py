@@ -1,13 +1,7 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
-import sets
-import time
-import numpy as np
-import networkx as nx
-from graph import proof_graph as prg
-import BitVector as bv
-import multiprocessing
+from src.graph import proof_graph as prg
 
 """
 This module provide the necessary functions to perform the compression

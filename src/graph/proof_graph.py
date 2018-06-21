@@ -3,9 +3,8 @@
 
 import BitVector as bv
 import re
-import exception
+from src import exception, constants
 from graph_adapter import GraphAdapter
-import constants
 
 
 class ProofGraph:
