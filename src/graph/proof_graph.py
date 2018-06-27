@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
-import BitVector as bv
+from BitVector import BitVector
 import re
 from src import exception, constants
 from graph_adapter import GraphAdapter
@@ -65,7 +65,7 @@ class ProofGraph:
     NODE_ATTRIBUTES = [LABEL, FORMULA, ANCESTOR_TARGET, HYPOTHESIS, DISCHARGE]
     EDGE_ATTRIBUTES = [COLOR, ANCESTOR, PATH, DEPENDENCIES, COLLAPSED]
 
-    def __init__(self, file_path):
+    def __init__(self, file_path=None, init_data=False):
         """
         Initializes an instance with the creation of the graph from a
         dot file.
@@ -86,8 +86,59 @@ class ProofGraph:
             If file_path is None or the file does not exists, an
             exception are raised
         """
-        self.graph = GraphAdapter(file_path)
-        self.__set_root()
+        self.graph = None
+        self.root = None
+
+        if file_path:
+            self.load_dot(file_path)
+            if init_data:
+                self.init_proof_graph_data()
+
+    def set_root(self):
+        """
+        Identifies the root of the derivation and stores it in the
+        instance variable 'root'.
+
+        The root is the conclusion of the proof and has no out edges.
+
+        Raises
+        ------
+        ProofGraphError
+            If root is not found
+        """
+        self.root = None
+        for node in list(self.graph.get_nodes()):
+            if self.graph.get_out_degree(node) == 0:
+                if not self.root:
+                    self.root = node
+                else:
+                    message = "The ProofGraph instance has many roots"
+                    raise exception.ProofGraphError(message)
+
+        if not self.root:
+            message = "The ProofGraph instance has no root"
+            raise exception.ProofGraphError(message)
+
+    def set_graph(self, graph):
+        """
+        Set Digraph 'graph' to instance variable 'graph'
+        """
+        graph_adapter = GraphAdapter()
+        graph_adapter.set_graph(graph)
+        self.graph = graph_adapter
+
+    def load_dot(self, file_path):
+        """
+        Create GraphAdapter instance from file and assign to instance
+        variable 'graph'
+        """
+        graph_adapter = GraphAdapter()
+        graph_adapter.load_dot(file_path)
+        self.graph = graph_adapter
+
+    # Not tested
+    def init_proof_graph_data(self):
+        self.set_root()
         self.__init_nodes_attributes()
         self.__set_formulas_indexes()
         self.__init_edges_attributes()
@@ -95,24 +146,7 @@ class ProofGraph:
         self.__set_edges_dependencies(self.root)
         self.__set_nodes_level(self.root)
 
-    def __set_root(self):
-        """
-        Identifies the root of the derivation and stores it in the
-        instance variable 'root'.
-
-        The root is the conclusion of the proof and has no out edges.
-
-        If the root is not found, an exception is raised.
-        """
-        for node in list(self.graph.get_nodes()):
-            self.root = None
-            if self.graph.get_out_degree(node) == 0:
-                self.root = node
-                break
-        if not self.root:
-            message = "The proof graph has no root"
-            raise exception.ProofGraphError(message)
-
+    # Not tested
     def __init_edges_attributes(self):
         """
         Initializes the edges attributes.
@@ -128,9 +162,10 @@ class ProofGraph:
             self.graph.set_edge_attribute(u, v, ProofGraph.COLOR, 0)
             self.graph.set_edge_attribute(u, v, ProofGraph.ANCESTOR, False)
             self.graph.set_edge_attribute(u, v, ProofGraph.COLLAPSED, False)
-            vector = bv.BitVector(size=qty_formulas)
+            vector = BitVector(size=qty_formulas)
             self.graph.set_edge_attribute(u, v, ProofGraph.DEPENDENCIES, vector)
 
+    # Not tested
     def __init_nodes_attributes(self):
         """
         Initialize nodes attributes.
@@ -145,6 +180,7 @@ class ProofGraph:
             formula = self.__raw_formula(node)
             self.graph.set_node_attribute(node, ProofGraph.FORMULA, formula)
 
+    # Not tested
     def __raw_formula(self, node):
         """
         Extracts only the corresponding formula from previous label
@@ -166,11 +202,12 @@ class ProofGraph:
         else:
             return node_label
 
+    # Not tested
     def __set_formulas_indexes(self):
         """
-        Stores each subformula in a dicitionary-like object.
+        Stores each sub-formula in a dictionary-like object.
 
-        Each subformula has only one key in the dict.
+        Each sub-formula has only one key in the dict.
         """
         formulas_index = {}
         index = 0
@@ -181,6 +218,7 @@ class ProofGraph:
                 index += 1
         self.formulas_index = formulas_index
 
+    # Not tested
     def __set_edges_dependencies(self, node):
         """
         Calculate the dependencies of the edges pointing out of the
@@ -236,6 +274,7 @@ class ProofGraph:
                     node, out_neighbor, ProofGraph.DEPENDENCIES)
                 dependencies = dependencies_1 ^ dependencies_2
 
+    # Not tested
     def __identify_discharged_ocurrences(self):
         """
         Identifies and stores which formulas were discharged in the
@@ -262,6 +301,7 @@ class ProofGraph:
             self.graph.set_node_attribute(node, ProofGraph.DISCHARGE,
                                           discharged_occurrence)
 
+    # Not tested
     def __set_nodes_level(self, root):
         """
         Build a dictionary-like object that groups the nodes according
@@ -270,7 +310,7 @@ class ProofGraph:
         Parameters
         ----------
         root: node
-            Node in the graph. Derivation root
+            Node in the graph. Derivation root.
         """
         level = 0
         nodes_level = {level: [root]}
@@ -293,7 +333,7 @@ class ProofGraph:
         node: node
             Node in the graph
 
-        attribute: string
+        attribute: node attribute, see ProofGraph.NODE_ATTRIBUTES
             Attribute of the node
 
         value: string, int or boolean
@@ -301,8 +341,11 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
+
+        NodeAttributeProofGraphError
+            The attribute is invalid
         """
         self.graph.set_node_attribute(node, attribute, value)
 
@@ -839,4 +882,8 @@ class ProofGraph:
         self.graph.remove_edges(edges)
 
     def to_agraph(self):
+        """
+        Return a Agraph instance from Digraph instance (PyGraphviz from
+        Networkx)
+        """
         return self.graph.to_agraph()

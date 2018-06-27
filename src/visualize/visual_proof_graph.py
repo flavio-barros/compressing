@@ -47,7 +47,6 @@ class VisualProofGraph:
         for (u, v) in self.vgraph.get_edges():
             edge = self.vgraph.get_edge(u, v)
             if edge.attr[constants.ANCESTOR] == constants.TRUE:
-                print edge.attr[constants.PATH]
                 self.vgraph.set_edge_attribute(u, v,
                                                vga.VisualGraphAdapter.COLOR,
                                                vga.VisualGraphAdapter.BLUE)

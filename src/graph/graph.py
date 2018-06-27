@@ -9,6 +9,9 @@ class Graph:
     __metaclass__ = ABCMeta
 
     @abstractmethod
+    def set_graph(self, graph): pass
+
+    @abstractmethod
     def load_dot(self, file_path): pass
 
     @abstractmethod
@@ -66,4 +69,4 @@ class Graph:
     def remove_edge(self, source, target): pass
 
     @abstractmethod
-    def remove_edges(self): pass
+    def remove_edges(self, edges): pass

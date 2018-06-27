@@ -14,7 +14,7 @@ def main():
     parser.add_argument("file", type=file, help="read proof graph from file")
     args = parser.parse_args()
 
-    proof_graph = prg.ProofGraph(args.file)
+    proof_graph = prg.ProofGraph(file_path=args.file, init_data=True)
 
     visual_proof_graph = vpg.VisualProofGraph(proof_graph)
 
