@@ -93,6 +93,7 @@ class NodeProofGraphError(ProofGraphError):
         message = "The node {0} {1}".format(self.node, self.message)
         return message
 
+
 class EdgeProofGraphError(ProofGraphError):
     def __init__(self, source, target, message):
         ProofGraphError.__init__(self, message)
@@ -103,4 +104,24 @@ class EdgeProofGraphError(ProofGraphError):
         message = "The edge ({0}. {1}) {2}".format(self.source,
                                                    self.target,
                                                    self.message)
+        return message
+
+
+class NodeAttributeProofGraphError(ProofGraphError):
+    def __init__(self, attribute, message):
+        ProofGraphError.__init__(self, message)
+        self.attribute = attribute
+
+    def __str__(self):
+        message = "The attribute {0} {1}".format(self.attribute, self.message)
+        return message
+
+
+class EdgeProofGraphError(ProofGraphError):
+    def __init__(self, attribute, message):
+        ProofGraphError.__init__(self, message)
+        self.attribute = attribute
+
+    def __str__(self):
+        message = "The attribute {0} {1}".format(self.attribute, self.message)
         return message

@@ -255,6 +255,17 @@ class GraphAdapterTest(unt.TestCase):
         self.graph_adapter.remove_node('1')
         self.assertFalse(graph.has_node('1'))
 
+    def test_has_node(self):
+        graph = nx.DiGraph()
+        graph.add_node('1')
+        self.graph_adapter.set_graph(graph)
+
+        # Test if node Not exists
+        self.assertFalse(self.graph_adapter.has_node('2'))
+
+        # Test if node exists
+        self.assertTrue(self.graph_adapter.has_node('1'))
+
     def test_get_edges(self):
         graph = nx.DiGraph()
         graph.add_node('1')

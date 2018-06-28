@@ -51,6 +51,9 @@ class Graph:
     def remove_node(self, node): pass
 
     @abstractmethod
+    def has_node(self, node): pass
+
+    @abstractmethod
     def get_edges(self): pass
 
     @abstractmethod

@@ -345,7 +345,7 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: node
-            Nodes in the graph
+            Node in the graph
 
         Raises
         ------
@@ -357,6 +357,18 @@ class GraphAdapter(Graph):
         else:
             message = "is not in the graph"
             raise exc.NodeGraphError(node, message)
+
+    def has_node(self, node):
+        """
+        Return True if node exists in graph. Return False if node not
+        exists.
+
+        Parameters
+        ----------
+        node: node
+            Node in the graph
+        """
+        return self.graph.has_node(node)
 
     def get_edges(self):
         """

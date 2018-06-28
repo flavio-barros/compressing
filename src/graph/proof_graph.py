@@ -2,6 +2,7 @@
 # coding: utf-8
 
 from BitVector import BitVector
+import src.exception as exc
 import re
 from src import exception, constants
 from graph_adapter import GraphAdapter
@@ -347,7 +348,15 @@ class ProofGraph:
         NodeAttributeProofGraphError
             The attribute is invalid
         """
-        self.graph.set_node_attribute(node, attribute, value)
+        if attribute in ProofGraph.NODE_ATTRIBUTES:
+            try:
+                self.graph.set_node_attribute(node, attribute, value)
+            except exc.NodeGraphError:
+                message = "not exists in proof graph"
+                raise exc.NodeProofGraphError(node, message)
+        else:
+            message = "is invalid"
+            raise exc.NodeAttributeProofGraphError(attribute, message)
 
     def get_node_attribute(self, node, attribute):
         """
@@ -371,6 +380,7 @@ class ProofGraph:
         attribute
             Node attribute or None if node is not in the graph.
         """
+
         return self.graph.get_node_attribute(node, attribute)
 
     def get_all_node_attributes(self, node):

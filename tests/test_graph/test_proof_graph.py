@@ -62,7 +62,7 @@ class ProofGraphTest(unt.TestCase):
         self.assertIsInstance(self.proof_graph.graph, GraphAdapter)
 
     def test_set_node_attribute(self):
-        pass
+        graph = nx.DiGraph()
 
     def test_get_node_attribute(self):
         pass
