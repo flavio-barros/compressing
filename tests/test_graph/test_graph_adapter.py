@@ -43,6 +43,14 @@ class GraphAdapterTest(unt.TestCase):
         self.graph_adapter.load_dot(self.success_file)
         self.assertIsInstance(self.graph_adapter.to_agraph(), pgv.AGraph)
 
+    def test_add_node(self):
+        graph = nx.DiGraph()
+        self.graph_adapter.set_graph(graph)
+
+        # Test node in the graph
+        self.graph_adapter.add_node('1')
+        self.assertTrue(self.graph_adapter.graph.has_node('1'))
+
     def test_get_nodes(self):
         graph = nx.DiGraph()
         graph.add_node('1')

@@ -18,6 +18,9 @@ class Graph:
     def to_agraph(self): pass
 
     @abstractmethod
+    def add_node(self, node): pass
+
+    @abstractmethod
     def get_nodes(self): pass
 
     @abstractmethod

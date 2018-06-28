@@ -66,6 +66,17 @@ class GraphAdapter(Graph):
         agraph = nx.nx_agraph.to_agraph(self.graph)
         return agraph
 
+    def add_node(self, node):
+        """
+        Add node to graph
+
+        Parameters
+        ----------
+        node: hashable type
+            Node to be added to the graph.
+        """
+        self.graph.add_node(node)
+
     def get_nodes(self):
         """
         Return a list of all nodes in the graph.
