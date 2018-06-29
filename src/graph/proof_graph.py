@@ -2,6 +2,7 @@
 # coding: utf-8
 
 from BitVector import BitVector
+
 import src.exception as exc
 import re
 from src import exception, constants
@@ -74,7 +75,7 @@ class ProofGraph:
         Edges and nodes attributes are added. In the beginning, only
         deductive edges are in the graph.
 
-        For each subformula in the proof is attributed a index. All
+        For each sub-formula in the proof is attributed a index. All
         indexes are stored in dictionary-like object.
 
         For each deductive edge is calculated the bit vector of
@@ -91,7 +92,9 @@ class ProofGraph:
         self.root = None
 
         if file_path:
-            self.load_dot(file_path)
+            graph = GraphAdapter()
+            graph.load_dot(file_path)
+            self.graph = graph
             if init_data:
                 self.init_proof_graph_data()
 
@@ -122,20 +125,9 @@ class ProofGraph:
 
     def set_graph(self, graph):
         """
-        Set Digraph 'graph' to instance variable 'graph'
+        Set GraphAdapter 'graph' to instance variable 'graph'
         """
-        graph_adapter = GraphAdapter()
-        graph_adapter.set_graph(graph)
-        self.graph = graph_adapter
-
-    def load_dot(self, file_path):
-        """
-        Create GraphAdapter instance from file and assign to instance
-        variable 'graph'
-        """
-        graph_adapter = GraphAdapter()
-        graph_adapter.load_dot(file_path)
-        self.graph = graph_adapter
+        self.graph = graph
 
     # Not tested
     def init_proof_graph_data(self):
@@ -153,10 +145,10 @@ class ProofGraph:
         Initializes the edges attributes.
 
         Before the compression process, all the edges in the graph are
-        deductives and have color 0.
+        deductive and have color 0.
 
         The bit vector of each edge has size equal to the number of
-        subformulas in the proof.
+        sub-formulas in the proof.
         """
         qty_formulas = len(self.formulas_index)
         for (u, v) in self.graph.get_edges():
@@ -214,7 +206,7 @@ class ProofGraph:
         index = 0
         for node in list(self.graph.get_nodes()):
             formula = self.graph.get_node_attribute(node, ProofGraph.FORMULA)
-            if not formulas_index.has_key(formula):
+            if formula not in formulas_index:
                 formulas_index[formula] = index
                 index += 1
         self.formulas_index = formulas_index
@@ -372,16 +364,29 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
+
+        NodeAttributeProofGraphError
+            The attribute is invalid
 
         Returns
         -------
         attribute
-            Node attribute or None if node is not in the graph.
+            Node attribute
         """
-
-        return self.graph.get_node_attribute(node, attribute)
+        if attribute in ProofGraph.NODE_ATTRIBUTES:
+            try:
+                return self.graph.get_node_attribute(node, attribute)
+            except exc.NodeGraphError:
+                message = "not exists in proof graph"
+                raise exc.NodeProofGraphError(node, message)
+            except exc.NodeAttributeGraphError:
+                message = "not exists"
+                raise exc.NodeAttributeProofGraphError(attribute, message)
+        else:
+            message = "is invalid"
+            raise exc.NodeAttributeProofGraphError(attribute, message)
 
     def get_all_node_attributes(self, node):
         """
@@ -394,7 +399,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
@@ -403,7 +408,11 @@ class ProofGraph:
             List of node attributes or None if node is not in the
             graph.
         """
-        return self.graph.get_all_node_attributes(node)
+        try:
+            return self.graph.get_all_node_attributes(node)
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_in_edges(self, node):
         """
@@ -416,7 +425,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
@@ -424,7 +433,11 @@ class ProofGraph:
         in_edges: List
             List of edges (source, target) that pointing to the node.
         """
-        return self.graph.get_in_edges(node)
+        try:
+            return self.graph.get_in_edges(node)
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_out_edges(self, node):
         """
@@ -437,7 +450,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
@@ -446,7 +459,11 @@ class ProofGraph:
             List of edges (source, target) that pointing out of the
             node.
         """
-        return self.graph.get_out_edges(node)
+        try:
+            return self.graph.get_out_edges(node)
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_deductive_in_degree(self, node):
         """
@@ -462,7 +479,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
@@ -470,19 +487,23 @@ class ProofGraph:
         deductive_in_degree: int
             number of deductive edges pointing to the node.
         """
-        count_deductive_edges = 0
-        for (source, target) in self.graph.get_in_edges(node):
-            is_ancestor = self.graph.get_edge_attribute(source, target,
-                                                        ProofGraph.ANCESTOR)
-            if not is_ancestor:
-                count_deductive_edges += 1
-        return count_deductive_edges
+        try:
+            deductive_in_degree = 0
+            for (source, target) in self.graph.get_in_edges(node):
+                is_ancestor = self.graph.get_edge_attribute(source, target,
+                                                            ProofGraph.ANCESTOR)
+                if not is_ancestor:
+                    deductive_in_degree += 1
+            return deductive_in_degree
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_deductive_out_degree(self, node):
         """
         Return node deductive_out_degree
 
-        The deductivce_out_degree is the number of deductive edges
+        The deductive_out_degree is the number of deductive edges
         pointing out of the node.
 
         Parameters
@@ -492,7 +513,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
@@ -500,17 +521,21 @@ class ProofGraph:
         deductive_out_degree: int
             number of deductive edges pointing out of the node.
         """
-        count_deductive_edges = 0
-        for (source, target) in self.graph.get_out_edges(node):
-            is_ancestor = self.graph.get_edge_attribute(source, target,
-                                                        ProofGraph.ANCESTOR)
-            if not is_ancestor:
-                count_deductive_edges += 1
-        return count_deductive_edges
+        try:
+            deductive_in_degree = 0
+            for (source, target) in self.graph.get_out_edges(node):
+                is_ancestor = self.graph.get_edge_attribute(source, target,
+                                                            ProofGraph.ANCESTOR)
+                if not is_ancestor:
+                    deductive_in_degree += 1
+            return deductive_in_degree
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_deductive_in_neighbors(self, node):
         """
-        Return the nodes that are source of deductives edges that
+        Return the nodes that are source of deductive edges that
         pointing to the node.
 
         Parameters
@@ -520,22 +545,26 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
         -------
         deductive_in_neighbors: List
-            List of nodes that are sources of deductives edges that
+            List of nodes that are sources of deductive edges that
             pointing out of the node.
         """
-        in_neighbors = []
-        for (source, target) in self.graph.get_in_edges(node):
-            is_ancestor = self.graph.get_edge_attribute(source, target,
-                                                        ProofGraph.ANCESTOR)
-            if not is_ancestor:
-                in_neighbors.append(source)
-        return in_neighbors
+        try:
+            in_neighbors = []
+            for (source, target) in self.graph.get_in_edges(node):
+                is_ancestor = self.graph.get_edge_attribute(source, target,
+                                                            ProofGraph.ANCESTOR)
+                if not is_ancestor:
+                    in_neighbors.append(source)
+            return in_neighbors
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_deductive_out_neighbors(self, node):
         """
@@ -549,7 +578,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
@@ -558,13 +587,17 @@ class ProofGraph:
             List of nodes that are targets of deductives edges that
             pointing out of the node.
         """
-        out_neighbors = []
-        for (source, target) in self.graph.get_out_edges(node):
-            is_ancestor = self.graph.get_edge_attribute(source, target,
-                                                        ProofGraph.ANCESTOR)
-            if not is_ancestor:
-                out_neighbors.append(target)
-        return out_neighbors
+        try:
+            out_neighbors = []
+            for (source, target) in self.graph.get_out_edges(node):
+                is_ancestor = self.graph.get_edge_attribute(source, target,
+                                                            ProofGraph.ANCESTOR)
+                if not is_ancestor:
+                    out_neighbors.append(target)
+            return out_neighbors
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_deductive_in_edges(self, node):
         """
@@ -577,21 +610,25 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
         -------
         deductive_in_edges: List
-            List of deductive edges (souce, target) that pointing to the node.
+            List of deductive edges (source, target) that pointing to the node.
         """
-        in_deductive_edges = []
-        for (source, target) in self.graph.get_in_edges(node):
-            is_ancestor = self.graph.get_edge_attribute(source, target,
-                                                        ProofGraph.ANCESTOR)
-            if not is_ancestor:
-                in_deductive_edges.append((source, target))
-        return in_deductive_edges
+        try:
+            in_deductive_edges = []
+            for (source, target) in self.graph.get_in_edges(node):
+                is_ancestor = self.graph.get_edge_attribute(source, target,
+                                                            ProofGraph.ANCESTOR)
+                if not is_ancestor:
+                    in_deductive_edges.append((source, target))
+            return in_deductive_edges
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_deductive_out_edges(self, node):
         """
@@ -604,7 +641,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
@@ -613,13 +650,17 @@ class ProofGraph:
             List of deductive edges (source, target) that pointing out of the
             node.
         """
-        out_deductive_edges = []
-        for (source, target) in self.graph.get_out_edges(node):
-            is_ancestor = self.graph.get_edge_attribute(source, target,
-                                                        ProofGraph.ANCESTOR)
-            if not is_ancestor:
-                out_deductive_edges.append((source, target))
-        return out_deductive_edges
+        try:
+            out_deductive_edges = []
+            for (source, target) in self.graph.get_out_edges(node):
+                is_ancestor = self.graph.get_edge_attribute(source, target,
+                                                            ProofGraph.ANCESTOR)
+                if not is_ancestor:
+                    out_deductive_edges.append((source, target))
+            return out_deductive_edges
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_ancestor_in_edges(self, node):
         """
@@ -632,7 +673,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
@@ -640,13 +681,17 @@ class ProofGraph:
         ancestor_in_edges: List
             List of ancestor edges (source, target) that pointing to the node.
         """
-        in_ancestor_edges = []
-        for (source, target) in self.graph.get_in_edges(node):
-            is_ancestor = self.graph.get_edge_attribute(source, target,
-                                                        ProofGraph.ANCESTOR)
-            if is_ancestor:
-                in_ancestor_edges.append((source, target))
-        return in_ancestor_edges
+        try:
+            in_ancestor_edges = []
+            for (source, target) in self.graph.get_in_edges(node):
+                is_ancestor = self.graph.get_edge_attribute(source, target,
+                                                            ProofGraph.ANCESTOR)
+                if is_ancestor:
+                    in_ancestor_edges.append((source, target))
+            return in_ancestor_edges
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def get_ancestor_out_edges(self, node):
         """
@@ -659,22 +704,26 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
 
         Returns
         -------
         ancestor_out_edges: List
-            List of ancestor edges (souce, target) that pointing out of the
+            List of ancestor edges (source, target) that pointing out of the
             node.
         """
-        out_ancestor_edges = []
-        for (source, target) in self.graph.get_out_edges(node):
-            is_ancestor = self.graph.get_edge_attribute(source, target,
-                                                        ProofGraph.ANCESTOR)
-            if is_ancestor:
-                out_ancestor_edges.append((source, target))
-        return out_ancestor_edges
+        try:
+            out_ancestor_edges = []
+            for (source, target) in self.graph.get_out_edges(node):
+                is_ancestor = self.graph.get_edge_attribute(source, target,
+                                                            ProofGraph.ANCESTOR)
+                if is_ancestor:
+                    out_ancestor_edges.append((source, target))
+            return out_ancestor_edges
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def redirect_in_edges(self, node_u, node_v, **kwargs):
         """
@@ -693,20 +742,33 @@ class ProofGraph:
             If 'ancestor_edges' is given, ancestor edges are considered
             in redirecting.
 
+        Raises
+        ------
+        NodeProofGraphError
+            'node_u' or 'node_v' is not in the graph
         """
-        ancestor_edges = kwargs.get("ancestor_edges", None)
-        if ancestor_edges:
-            in_edges_u = self.graph.get_in_edges(node_u)
+        if self.graph.has_node(node_u):
+            if self.graph.has_node(node_v):
+                ancestor_edges = kwargs.get("ancestor_edges", None)
+                if ancestor_edges:
+                    in_edges_u = self.graph.get_in_edges(node_u)
+                else:
+                    in_edges_u = self.get_deductive_in_edges(node_u)
+                for (source, target) in in_edges_u:
+                    attributes = self.get_all_edge_attributes(source, target)
+                    self.graph.add_edge(source, node_v, **attributes)
+                self.graph.remove_edges(in_edges_u)
+            else:
+                message = "not exists in proof graph"
+                raise exc.NodeProofGraphError(node_v, message)
         else:
-            in_edges_u = self.get_deductive_in_edges(node_u)
-        for (source, target) in in_edges_u:
-            attributes = self.get_all_edge_attributes(source, target)
-            self.graph.add_edge(source, node_v, **attributes)
-        self.graph.remove_edges(in_edges_u)
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node_v, message)
 
     def redirect_out_edges(self, node_u, node_v):
         """
-        Redirect edges that pointing out the node_u to node_v.
+        Redirect deductive edges that pointing out the node_u to
+        node_v.
 
         Remove edges that have node_u as source and add edges with same
         target and attributes pointing out of the node_v.
@@ -715,12 +777,26 @@ class ProofGraph:
         ----------
         node_u, node_v: node
             Nodes in the graph
+
+        Raises
+        ------
+        NodeProofGraphError
+            'node_u' or 'node_v' is not in the graph
         """
-        out_edges_u = self.get_deductive_out_edges(node_u)
-        for (source, target) in out_edges_u:
-            edge_attributes = self.graph.get_all_edge_attributes(source, target)
-            self.graph.add_edge(node_v, target, **edge_attributes)
-        self.graph.remove_edges(out_edges_u)
+        if self.graph.has_node(node_u):
+            if self.graph.has_node(node_v):
+                out_edges_u = self.get_deductive_out_edges(node_u)
+                for (source, target) in out_edges_u:
+                    edge_attributes = self.graph.get_all_edge_attributes(source,
+                                                                         target)
+                    self.graph.add_edge(node_v, target, **edge_attributes)
+                self.graph.remove_edges(out_edges_u)
+            else:
+                message = "not exists in proof graph"
+                raise exc.NodeProofGraphError(node_v, message)
+        else:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node_v, message)
 
     def remove_node(self, node):
         """
@@ -733,10 +809,14 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        NodeProofGraphError
             The node is not in the graph
         """
-        self.graph.remove_node(node)
+        try:
+            self.graph.remove_node(node)
+        except exc.NodeGraphError:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node, message)
 
     def add_ancestor_edge(self, source, target, **kwargs):
         """
@@ -755,30 +835,46 @@ class ProofGraph:
             path as attribute.
             If 'new_color' is given, the ancestor edge is added with
             the path containing only 'new_color'.
-            If neither argument is given, the ancestor edge is added
-            with empty path.
 
         Raises
         ------
-        ProofGraphError:
-            If there is not an edge between source and target.
-        """
-        path = kwargs.get("path", None)
-        new_color = kwargs.get("new_color", None)
-        if path and new_color:
-            new_path = list(path)
-            new_path.insert(0, new_color)
-            self.graph.add_edge(source, target, ancestor=True, path=new_path)
-        elif new_color:
-            new_path = list()
-            new_path.append(new_color)
-            self.graph.add_edge(source, target, ancestor=True, path=new_path)
-        elif path:
-            self.graph.add_edge(source, target, ancestor=True, path=path)
+        NodeProofGraphError
+            'node_u' or 'node_v' is not in the graph.
 
-    def add_collapsed_edge(self, node_u, node_v, target):
+        WrongSettingGraphError
+            Arguments 'path' and 'new_color' not given.
         """
-        Add a deductive coll edge between node_u and target.
+        if self.graph.has_node(source):
+            if self.graph.has_node(target):
+                path = kwargs.get("path", None)
+                new_color = kwargs.get("new_color", None)
+                if path and new_color:
+                    new_path = list(path)
+                    new_path.insert(0, new_color)
+                    self.graph.add_edge(source, target, ancestor=True,
+                                        path=new_path)
+                elif new_color:
+                    new_path = list()
+                    new_path.append(new_color)
+                    self.graph.add_edge(source, target, ancestor=True,
+                                        path=new_path)
+                elif path:
+                    self.graph.add_edge(source, target, ancestor=True,
+                                        path=path)
+                else:
+                    method = self.add_ancestor_edge.__name__
+                    message = "is wrong"
+                    raise exc.WrongSettingGraphError(method, message)
+            else:
+                message = "not exists in proof graph"
+                raise exc.NodeProofGraphError(target, message)
+        else:
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(source, message)
+
+    def collapse_edges(self, node_u, node_v, target):
+        """
+        Add a deductive collapsed edge between node_u and target.
 
         There must be an deductive edge between node_u and target, and
         between node_v and target.
@@ -790,7 +886,37 @@ class ProofGraph:
         ----------
         node_u, node_v, target: node
             Nodes in the graph
+
+        Raises
+        ------
+        NodeProofGraphError
+            'node_u' or 'node_v' or 'target' is not in the graph.
+
+        EdgeProofGraphError
+            The edge (node_u, target) not exists in the graph.
+            The edge (node_v, target) not exists in the graph.
+
         """
+        if not self.graph.has_node(node_u):
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node_u, message)
+
+        if not self.graph.has_node(node_v):
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(node_v, message)
+
+        if not self.graph.has_node(target):
+            message = "not exists in proof graph"
+            raise exc.NodeProofGraphError(target, message)
+
+        if not self.graph.has_edge(node_u, target):
+            message = "not exists in proof graph"
+            raise exc.EdgeProofGraphError(node_u, target, message)
+
+        if not self.graph.has_edge(node_v, target):
+            message = "not exists in proof graph"
+            raise exc.EdgeProofGraphError(node_v, target, message)
+
         self.graph.remove_edge(node_u, target)
         self.graph.remove_edge(node_v, target)
         attributes = {ProofGraph.COLLAPSED: True}
@@ -813,9 +939,20 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError:
+        EdgeProofGraphError:
             If there is not an edge between source and target.
+
+        EdgeAttributeProofGraphError
+            If 'attribute' is invalid
         """
+        if not self.graph.has_edge(source, target):
+            message = "not exists in proof graph"
+            raise exc.EdgeProofGraphError(source, target, message)
+
+        if attribute not in ProofGraph.EDGE_ATTRIBUTES:
+            message = "is invalid"
+            raise exc.EdgeAttributeProofGraphError(attribute, message)
+
         self.graph.set_edge_attribute(source, target, attribute, value)
 
     def get_edge_attribute(self, source, target, attribute):
@@ -832,8 +969,11 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError:
+        EdgeProofGraphError:
             If there is not an edge between source and target.
+
+        EdgeAttributeProofGraphError
+            If 'attribute' is invalid
 
         Returns
         -------
@@ -841,6 +981,14 @@ class ProofGraph:
             Edge attribute or None if attribute is not valid.
 
         """
+        if not self.graph.has_edge(source, target):
+            message = "not exists in proof graph"
+            raise exc.EdgeProofGraphError(source, target, message)
+
+        if attribute not in ProofGraph.EDGE_ATTRIBUTES:
+            message = "is invalid"
+            raise exc.EdgeAttributeProofGraphError(attribute, message)
+
         return self.graph.get_edge_attribute(source, target, attribute)
 
     def get_all_edge_attributes(self, source, target):
@@ -854,7 +1002,7 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError:
+        EdgeProofGraphError:
             If there is not an edge between source and target.
 
         Returns
@@ -862,6 +1010,10 @@ class ProofGraph:
         attributes: List
             List of attributes of the edge between source and target.
         """
+        if not self.graph.has_edge(source, target):
+            message = "not exists in proof graph"
+            raise exc.EdgeProofGraphError(source, target, message)
+
         return self.graph.get_all_edge_attributes(source, target)
 
     def remove_edge(self, source, target):
@@ -875,9 +1027,13 @@ class ProofGraph:
 
         Raises
         ------
-        ProofGraphError
+        EdgeProofGraphError
             If there is not an edge between source and target.
         """
+        if not self.graph.has_edge(source, target):
+            message = "not exists in proof graph"
+            raise exc.EdgeProofGraphError(source, target, message)
+
         self.graph.remove_edge(source, target)
 
     def remove_edges(self, edges):
@@ -895,5 +1051,10 @@ class ProofGraph:
         """
         Return a Agraph instance from Digraph instance (PyGraphviz from
         Networkx)
+
+        Returns
+        -------
+        agraph: Agraph
+            A Agraph instance
         """
         return self.graph.to_agraph()

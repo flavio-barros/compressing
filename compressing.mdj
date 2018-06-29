@@ -2929,7 +2929,7 @@
 											"top": 507,
 											"width": 358.2236328125,
 											"height": 13,
-											"text": "+add_collapsed_edge(u, v, target, attributes)",
+											"text": "+collapse_edges(u, v, target, attributes)",
 											"horizontalAlignment": 0
 										},
 										{
@@ -7499,7 +7499,7 @@
 									"_parent": {
 										"$ref": "AAAAAAFj8Kb+EP/A4dQ="
 									},
-									"name": "add_collapsed_edge",
+									"name": "collapse_edges",
 									"parameters": [
 										{
 											"_type": "UMLParameter",

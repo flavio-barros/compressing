@@ -18,7 +18,7 @@ class GraphAdapter(Graph):
         Initializes a GraphAdapter instance and assign None to
         graph variable.
         """
-        self.graph = None
+        self.graph = nx.DiGraph()
 
     def set_graph(self, graph):
         self.graph = graph
@@ -138,7 +138,6 @@ class GraphAdapter(Graph):
         ------
         NodeAttributeGraphError
             'node' does not have 'attribute'.
-            'attribute' not exists.
 
         NodeGraphError
             'node' is not in the graph.
@@ -147,7 +146,6 @@ class GraphAdapter(Graph):
         -------
         attribute: object
             Value of node attribute.
-            None if 'node' does not have the attribute.
         """
         try:
             if self.graph.has_node(node):
@@ -429,6 +427,17 @@ class GraphAdapter(Graph):
         else:
             message = "is not in the graph"
             raise exc.NodeGraphError(source, message)
+
+    def has_edge(self, source, target):
+        """
+        Return True if edge exists in the graph, False if not exists
+
+        Parameters
+        ----------
+        source, target: hashable type
+            Nodes in the graph
+        """
+        return self.graph.has_edge(source, target)
 
     def set_edge_attribute(self, source, target, attribute, value):
         """

@@ -101,7 +101,7 @@ class EdgeProofGraphError(ProofGraphError):
         self.target = target
 
     def __str__(self):
-        message = "The edge ({0}. {1}) {2}".format(self.source,
+        message = "The edge ({0}, {1}) {2}".format(self.source,
                                                    self.target,
                                                    self.message)
         return message
@@ -117,11 +117,21 @@ class NodeAttributeProofGraphError(ProofGraphError):
         return message
 
 
-class EdgeProofGraphError(ProofGraphError):
+class EdgeAttributeProofGraphError(ProofGraphError):
     def __init__(self, attribute, message):
         ProofGraphError.__init__(self, message)
         self.attribute = attribute
 
     def __str__(self):
         message = "The attribute {0} {1}".format(self.attribute, self.message)
+        return message
+
+
+class WrongSettingGraphError(ProofGraphError):
+    def __init__(self, method, message):
+        ProofGraphError.__init__(self, message)
+        self.method = method
+
+    def __str__(self):
+        message = "The setting of method {0}".format(self.method)
         return message

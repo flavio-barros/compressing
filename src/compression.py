@@ -299,7 +299,7 @@ def collapse_nodes(graph, node_u, node_v, **kwargs):
         for (source_u, target_u) in graph.get_out_edges(node_u):
             for (source_v, target_v) in graph.get_out_edges(node_v):
                 if target_u == target_v:
-                    graph.add_collapsed_edge(node_u, node_v, target_u)
+                    graph.collapse_edges(node_u, node_v, target_u)
 
     if redirect_ancestor_edges:
         graph.redirect_in_edges(node_v, node_u, ancestor_edges=True)

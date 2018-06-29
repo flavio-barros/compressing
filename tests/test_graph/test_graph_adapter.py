@@ -317,6 +317,19 @@ class GraphAdapterTest(unt.TestCase):
             self.graph_adapter.graph.edges['1', '3']["test_attribute"],
             1)
 
+    def test_has_edge(self):
+        graph = nx.DiGraph()
+        graph.add_node('1')
+        graph.add_node('2')
+        graph.add_edge('1', '2')
+        self.graph_adapter.set_graph(graph)
+
+        # Test if graph has edge
+        self.assertTrue(self.graph_adapter.has_edge('1', '2'))
+
+        # Test if graph does not have
+        self.assertFalse(self.graph_adapter.has_edge('2', '1'))
+
     def test_set_edge_attribute(self):
         graph = nx.DiGraph()
         graph.add_node('1')
