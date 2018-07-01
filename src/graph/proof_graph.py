@@ -5,7 +5,8 @@ from BitVector import BitVector
 
 import src.exception as exc
 import re
-from src import exception, constants
+from src import exception
+from src.util import constants
 from graph_adapter import GraphAdapter
 
 

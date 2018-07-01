@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
-from src import constants
+from src.util import constants
 import visual_graph as vig
 
 
