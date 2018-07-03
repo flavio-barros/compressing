@@ -2,10 +2,10 @@
 # coding: utf-8
 
 from src.util import constants
-import visual_graph as vig
+from src.visualize import visual_graph as vgr
 
 
-class VisualGraphAdapter(vig.VisualGraph):
+class VisualGraphAdapter(vgr.VisualGraph):
 
     UPPER = constants.UPPER
     LOWER = constants.LOWER
@@ -65,7 +65,7 @@ class VisualGraphAdapter(vig.VisualGraph):
 
     def get_node_attribute(self, node, attribute):
         node = self.agraph.get_node(node)
-        if node.attr.has_key(attribute):
+        if attribute in node.attr:
             attribute_value = node.attr[attribute]
             if attribute_value == constants.TRUE:
                 return True

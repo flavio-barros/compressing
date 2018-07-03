@@ -2,12 +2,11 @@
 # coding: utf-8
 
 import argparse
-from graph import proof_graph as prg
-import compression as cmp
-from visualize import visual_proof_graph as vpg
 
+from src.graph import proof_graph as prg
+from src.compression import compression
+from src.visualize import visual_proof_graph as vpg
 
-# from visual_graph_adapter import VisualGraphAdapter
 
 def main():
     parser = argparse.ArgumentParser()
@@ -20,15 +19,20 @@ def main():
 
     visual_proof_graph.draw_input()
 
-    nodes_repeated_formulas = cmp.get_nodes_repeated_formulas(proof_graph)
-
-    print "Starting... "
+    nodes_repeated_formulas = \
+        compression.get_nodes_repeated_formulas(proof_graph)
 
     for nodes in nodes_repeated_formulas:
         node_u = nodes.pop()
         for node_v in nodes:
-            rule_function = cmp.identify_rule(proof_graph, node_u, node_v)
-            node_u = cmp.exec_rule(rule_function, proof_graph, node_u, node_v)
+            rule_function = compression.identify_rule(proof_graph,
+                                                      node_u,
+                                                      node_v)
+            node_u = compression.exec_rule(rule_function,
+                                           proof_graph,
+                                           node_u,
+                                           node_v)
+        print "import"
 
     print "done."
 

@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from src.util import constants
-import visual_graph_adapter as vga
+from src.visualize import visual_graph_adapter as vga
 
 
 class VisualProofGraph:

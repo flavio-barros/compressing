@@ -1,13 +1,12 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
-from BitVector import BitVector
-
-import src.exception as exc
 import re
-from src import exception
+
+from BitVector import BitVector
+from src.exceptions import exception
 from src.util import constants
-from graph_adapter import GraphAdapter
+from src.graph import graph_adapter as gap
 
 
 class ProofGraph:
@@ -93,7 +92,7 @@ class ProofGraph:
         self.root = None
 
         if file_path:
-            graph = GraphAdapter()
+            graph = gap.GraphAdapter()
             graph.load_dot(file_path)
             self.graph = graph
             if init_data:
@@ -344,12 +343,12 @@ class ProofGraph:
         if attribute in ProofGraph.NODE_ATTRIBUTES:
             try:
                 self.graph.set_node_attribute(node, attribute, value)
-            except exc.NodeGraphError:
+            except exception.NodeGraphError:
                 message = "not exists in proof graph"
-                raise exc.NodeProofGraphError(node, message)
+                raise exception.NodeProofGraphError(node, message)
         else:
             message = "is invalid"
-            raise exc.NodeAttributeProofGraphError(attribute, message)
+            raise exception.NodeAttributeProofGraphError(attribute, message)
 
     def get_node_attribute(self, node, attribute):
         """
@@ -379,15 +378,15 @@ class ProofGraph:
         if attribute in ProofGraph.NODE_ATTRIBUTES:
             try:
                 return self.graph.get_node_attribute(node, attribute)
-            except exc.NodeGraphError:
+            except exception.NodeGraphError:
                 message = "not exists in proof graph"
-                raise exc.NodeProofGraphError(node, message)
-            except exc.NodeAttributeGraphError:
+                raise exception.NodeProofGraphError(node, message)
+            except exception.NodeAttributeGraphError:
                 message = "not exists"
-                raise exc.NodeAttributeProofGraphError(attribute, message)
+                raise exception.NodeAttributeProofGraphError(attribute, message)
         else:
             message = "is invalid"
-            raise exc.NodeAttributeProofGraphError(attribute, message)
+            raise exception.NodeAttributeProofGraphError(attribute, message)
 
     def get_all_node_attributes(self, node):
         """
@@ -411,9 +410,9 @@ class ProofGraph:
         """
         try:
             return self.graph.get_all_node_attributes(node)
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_in_edges(self, node):
         """
@@ -436,9 +435,9 @@ class ProofGraph:
         """
         try:
             return self.graph.get_in_edges(node)
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_out_edges(self, node):
         """
@@ -462,9 +461,9 @@ class ProofGraph:
         """
         try:
             return self.graph.get_out_edges(node)
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_deductive_in_degree(self, node):
         """
@@ -496,9 +495,9 @@ class ProofGraph:
                 if not is_ancestor:
                     deductive_in_degree += 1
             return deductive_in_degree
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_deductive_out_degree(self, node):
         """
@@ -530,9 +529,9 @@ class ProofGraph:
                 if not is_ancestor:
                     deductive_in_degree += 1
             return deductive_in_degree
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_deductive_in_neighbors(self, node):
         """
@@ -563,9 +562,9 @@ class ProofGraph:
                 if not is_ancestor:
                     in_neighbors.append(source)
             return in_neighbors
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_deductive_out_neighbors(self, node):
         """
@@ -596,9 +595,9 @@ class ProofGraph:
                 if not is_ancestor:
                     out_neighbors.append(target)
             return out_neighbors
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_deductive_in_edges(self, node):
         """
@@ -627,9 +626,9 @@ class ProofGraph:
                 if not is_ancestor:
                     in_deductive_edges.append((source, target))
             return in_deductive_edges
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_deductive_out_edges(self, node):
         """
@@ -659,9 +658,9 @@ class ProofGraph:
                 if not is_ancestor:
                     out_deductive_edges.append((source, target))
             return out_deductive_edges
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_ancestor_in_edges(self, node):
         """
@@ -690,9 +689,9 @@ class ProofGraph:
                 if is_ancestor:
                     in_ancestor_edges.append((source, target))
             return in_ancestor_edges
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def get_ancestor_out_edges(self, node):
         """
@@ -722,9 +721,9 @@ class ProofGraph:
                 if is_ancestor:
                     out_ancestor_edges.append((source, target))
             return out_ancestor_edges
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def redirect_in_edges(self, node_u, node_v, **kwargs):
         """
@@ -761,10 +760,10 @@ class ProofGraph:
                 self.graph.remove_edges(in_edges_u)
             else:
                 message = "not exists in proof graph"
-                raise exc.NodeProofGraphError(node_v, message)
+                raise exception.NodeProofGraphError(node_v, message)
         else:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node_v, message)
+            raise exception.NodeProofGraphError(node_v, message)
 
     def redirect_out_edges(self, node_u, node_v):
         """
@@ -794,10 +793,10 @@ class ProofGraph:
                 self.graph.remove_edges(out_edges_u)
             else:
                 message = "not exists in proof graph"
-                raise exc.NodeProofGraphError(node_v, message)
+                raise exception.NodeProofGraphError(node_v, message)
         else:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node_v, message)
+            raise exception.NodeProofGraphError(node_v, message)
 
     def remove_node(self, node):
         """
@@ -815,9 +814,9 @@ class ProofGraph:
         """
         try:
             self.graph.remove_node(node)
-        except exc.NodeGraphError:
+        except exception.NodeGraphError:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node, message)
+            raise exception.NodeProofGraphError(node, message)
 
     def add_ancestor_edge(self, source, target, **kwargs):
         """
@@ -865,13 +864,13 @@ class ProofGraph:
                 else:
                     method = self.add_ancestor_edge.__name__
                     message = "is wrong"
-                    raise exc.WrongSettingGraphError(method, message)
+                    raise exception.WrongSettingGraphError(method, message)
             else:
                 message = "not exists in proof graph"
-                raise exc.NodeProofGraphError(target, message)
+                raise exception.NodeProofGraphError(target, message)
         else:
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(source, message)
+            raise exception.NodeProofGraphError(source, message)
 
     def collapse_edges(self, node_u, node_v, target):
         """
@@ -900,27 +899,27 @@ class ProofGraph:
         """
         if not self.graph.has_node(node_u):
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node_u, message)
+            raise exception.NodeProofGraphError(node_u, message)
 
         if not self.graph.has_node(node_v):
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(node_v, message)
+            raise exception.NodeProofGraphError(node_v, message)
 
         if not self.graph.has_node(target):
             message = "not exists in proof graph"
-            raise exc.NodeProofGraphError(target, message)
+            raise exception.NodeProofGraphError(target, message)
 
         if not self.graph.has_edge(node_u, target):
             message = "not exists in proof graph"
-            raise exc.EdgeProofGraphError(node_u, target, message)
+            raise exception.EdgeProofGraphError(node_u, target, message)
 
         if not self.graph.has_edge(node_v, target):
             message = "not exists in proof graph"
-            raise exc.EdgeProofGraphError(node_v, target, message)
+            raise exception.EdgeProofGraphError(node_v, target, message)
 
         self.graph.remove_edge(node_u, target)
         self.graph.remove_edge(node_v, target)
-        attributes = {ProofGraph.COLLAPSED: True}
+        attributes = {ProofGraph.COLLAPSED: True, ProofGraph.ANCESTOR: False}
         self.graph.add_edge(node_u, target, **attributes)
 
     def set_edge_attribute(self, source, target, attribute, value):
@@ -948,11 +947,11 @@ class ProofGraph:
         """
         if not self.graph.has_edge(source, target):
             message = "not exists in proof graph"
-            raise exc.EdgeProofGraphError(source, target, message)
+            raise exception.EdgeProofGraphError(source, target, message)
 
         if attribute not in ProofGraph.EDGE_ATTRIBUTES:
             message = "is invalid"
-            raise exc.EdgeAttributeProofGraphError(attribute, message)
+            raise exception.EdgeAttributeProofGraphError(attribute, message)
 
         self.graph.set_edge_attribute(source, target, attribute, value)
 
@@ -984,11 +983,11 @@ class ProofGraph:
         """
         if not self.graph.has_edge(source, target):
             message = "not exists in proof graph"
-            raise exc.EdgeProofGraphError(source, target, message)
+            raise exception.EdgeProofGraphError(source, target, message)
 
         if attribute not in ProofGraph.EDGE_ATTRIBUTES:
             message = "is invalid"
-            raise exc.EdgeAttributeProofGraphError(attribute, message)
+            raise exception.EdgeAttributeProofGraphError(attribute, message)
 
         return self.graph.get_edge_attribute(source, target, attribute)
 
@@ -1013,7 +1012,7 @@ class ProofGraph:
         """
         if not self.graph.has_edge(source, target):
             message = "not exists in proof graph"
-            raise exc.EdgeProofGraphError(source, target, message)
+            raise exception.EdgeProofGraphError(source, target, message)
 
         return self.graph.get_all_edge_attributes(source, target)
 
@@ -1033,7 +1032,7 @@ class ProofGraph:
         """
         if not self.graph.has_edge(source, target):
             message = "not exists in proof graph"
-            raise exc.EdgeProofGraphError(source, target, message)
+            raise exception.EdgeProofGraphError(source, target, message)
 
         self.graph.remove_edge(source, target)
 

@@ -1,13 +1,14 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
-from graph import Graph
 import networkx as nx
 import pygraphviz as pgv
-import src.exception as exc
+
+from src.graph import graph as gph
+from src.exceptions import exception
 
 
-class GraphAdapter(Graph):
+class GraphAdapter(gph.Graph):
     """
     This class uses the graph structure of the networkx library.
     See more: https://networkx.github.io
@@ -48,10 +49,10 @@ class GraphAdapter(Graph):
             self.graph = nx.DiGraph(agraph)
         except pgv.DotError:
             message = "is poorly formulated"
-            raise exc.FileError(file_path, message)
+            raise exception.FileError(file_path, message)
         except IOError:
             message = "not exists"
-            raise exc.FileError(file_path, message)
+            raise exception.FileError(file_path, message)
 
     def to_agraph(self):
         """
@@ -117,10 +118,10 @@ class GraphAdapter(Graph):
                 self.graph.nodes[node][attribute] = value
             else:
                 message = "is not in the graph"
-                raise exc.NodeGraphError(node, message)
+                raise exception.NodeGraphError(node, message)
         except TypeError:
             message = "is not hashable"
-            raise exc.NodeAttributeGraphError(attribute, message)
+            raise exception.NodeAttributeGraphError(attribute, message)
 
     def get_node_attribute(self, node, attribute):
         """
@@ -153,13 +154,13 @@ class GraphAdapter(Graph):
                 return node_attribute
             else:
                 message = "is not in the graph"
-                raise exc.NodeGraphError(node, message)
+                raise exception.NodeGraphError(node, message)
         except TypeError:
             message = "is not hashable"
-            raise exc.NodeAttributeGraphError(attribute, message)
+            raise exception.NodeAttributeGraphError(attribute, message)
         except KeyError:
             message = "not exists"
-            raise exc.NodeAttributeGraphError(attribute, message)
+            raise exception.NodeAttributeGraphError(attribute, message)
 
     def get_all_node_attributes(self, node):
         """
@@ -185,7 +186,7 @@ class GraphAdapter(Graph):
             return attributes
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(node, message)
+            raise exception.NodeGraphError(node, message)
 
     def get_in_neighbors(self, node):
         """
@@ -212,7 +213,7 @@ class GraphAdapter(Graph):
             return in_neighbors
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(node, message)
+            raise exception.NodeGraphError(node, message)
 
     def get_out_neighbors(self, node):
         """
@@ -239,7 +240,7 @@ class GraphAdapter(Graph):
             return out_neighbors
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(node, message)
+            raise exception.NodeGraphError(node, message)
 
     def get_in_edges(self, node):
         """
@@ -265,7 +266,7 @@ class GraphAdapter(Graph):
             return in_edges
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(node, message)
+            raise exception.NodeGraphError(node, message)
 
     def get_out_edges(self, node):
         """
@@ -292,7 +293,7 @@ class GraphAdapter(Graph):
             return out_edges
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(node, message)
+            raise exception.NodeGraphError(node, message)
 
     def get_in_degree(self, node):
         """
@@ -319,7 +320,7 @@ class GraphAdapter(Graph):
 
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(node, message)
+            raise exception.NodeGraphError(node, message)
 
     def get_out_degree(self, node):
         """
@@ -345,7 +346,7 @@ class GraphAdapter(Graph):
             return out_degree
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(node, message)
+            raise exception.NodeGraphError(node, message)
 
     def remove_node(self, node):
         """
@@ -365,7 +366,7 @@ class GraphAdapter(Graph):
             self.graph.remove_node(node)
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(node, message)
+            raise exception.NodeGraphError(node, message)
 
     def has_node(self, node):
         """
@@ -420,13 +421,14 @@ class GraphAdapter(Graph):
                             self.graph.edges[source, target][attribute] = value
                         except TypeError:
                             message = "is not hashable"
-                            exc.EdgeAttributeGraphError(attribute, message)
+                            exception.EdgeAttributeGraphError(attribute,
+                                                              message)
             else:
                 message = "is not in the graph"
-                raise exc.NodeGraphError(target, message)
+                raise exception.NodeGraphError(target, message)
         else:
             message = "is not in the graph"
-            raise exc.NodeGraphError(source, message)
+            raise exception.NodeGraphError(source, message)
 
     def has_edge(self, source, target):
         """
@@ -467,13 +469,13 @@ class GraphAdapter(Graph):
                 self.graph.edges[source, target][attribute] = value
             else:
                 message = "is not in the graph"
-                raise exc.EdgeGraphError(source, target, message)
+                raise exception.EdgeGraphError(source, target, message)
         except TypeError:
             message = "is not hashable"
-            raise exc.EdgeAttributeGraphError(attribute, message)
+            raise exception.EdgeAttributeGraphError(attribute, message)
         except KeyError:
             message = "not exists"
-            raise exc.EdgeAttributeGraphError(attribute, message)
+            raise exception.EdgeAttributeGraphError(attribute, message)
 
     def get_edge_attribute(self, source, target, attribute):
         """
@@ -506,13 +508,13 @@ class GraphAdapter(Graph):
                 return edge_attribute
             except TypeError:
                 message = "is not hashable"
-                raise exc.EdgeAttributeGraphError(attribute, message)
+                raise exception.EdgeAttributeGraphError(attribute, message)
             except KeyError:
                 message = "not exists"
-                raise exc.EdgeAttributeGraphError(attribute, message)
+                raise exception.EdgeAttributeGraphError(attribute, message)
         else:
             message = "is not in the graph"
-            raise exc.EdgeGraphError(source, target, message)
+            raise exception.EdgeGraphError(source, target, message)
 
     def get_all_edge_attributes(self, source, target):
         """
@@ -537,7 +539,7 @@ class GraphAdapter(Graph):
             return self.graph.edges[source, target]
         else:
             message = "not exists"
-            raise exc.EdgeGraphError(source, target, message)
+            raise exception.EdgeGraphError(source, target, message)
 
     def remove_edge(self, source, target):
         """
@@ -557,7 +559,7 @@ class GraphAdapter(Graph):
             self.graph.remove_edge(source, target)
         else:
             message = "not exists"
-            raise exc.EdgeGraphError(source, target, message)
+            raise exception.EdgeGraphError(source, target, message)
 
     def remove_edges(self, edges):
         """
