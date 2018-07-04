@@ -9,15 +9,29 @@ from src.visualize import visual_proof_graph as vpg
 
 
 def main():
+
+    #
     parser = argparse.ArgumentParser()
+
+    # file argument
     parser.add_argument("file", type=file, help="read proof graph from file")
+
+    # visualize argument
+    parser.add_argument("--visualize", dest='visualize', action='store_true',
+                        help="generates pdf visualization")
+    parser.add_argument("--no-visualize", dest='visualize',
+                        action='store_false',
+                        help="not generates pdf visualization")
+    parser.set_defaults(visualize=True)
+
     args = parser.parse_args()
 
     proof_graph = prg.ProofGraph(file_path=args.file, init_data=True)
 
     visual_proof_graph = vpg.VisualProofGraph(proof_graph)
 
-    visual_proof_graph.draw_input()
+    if args.visualize:
+        visual_proof_graph.draw_input()
 
     nodes_repeated_formulas = \
         compression.get_nodes_repeated_formulas(proof_graph)
@@ -33,9 +47,8 @@ def main():
                                            node_u,
                                            node_v)
 
-    print "done."
-
-    visual_proof_graph.draw_final()
+    if args.visualize:
+        visual_proof_graph.draw_final()
 
 
 if __name__ == '__main__':
