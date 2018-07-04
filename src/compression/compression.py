@@ -5,7 +5,7 @@ from src.graph import proof_graph as prg
 
 """
 This module provide the necessary functions to perform the compression
-on an object from ProofGraph class.
+on object from ProofGraph class.
 
 Exported functions
 ------------------
@@ -29,6 +29,16 @@ def get_nodes_repeated_formulas(proof_graph):
     The ProofGraph object has a attribute 'nodes_level', a
     dictionary-like object that stores nodes per level in derivation
     tree.
+
+    Parameters
+    ----------
+    proof_graph: ProofGraph object
+
+    Returns
+    -------
+    repeated_formulas: List
+        A List of list of nodes with repeated formulas in same level of
+        derivation tree.
     """
     repeated_formulas = []
     nodes_level = proof_graph.nodes_level
@@ -37,7 +47,7 @@ def get_nodes_repeated_formulas(proof_graph):
         for node in nodes:
             formula = proof_graph.get_node_attribute(node,
                                                      prg.ProofGraph.FORMULA)
-            if nodes_formula.has_key(formula):
+            if formula in nodes_formula:
                 nodes_formula[formula].append(node)
             else:
                 nodes_formula[formula] = [node]
@@ -49,6 +59,22 @@ def get_nodes_repeated_formulas(proof_graph):
 
 
 def identify_rule(graph, node_u, node_v):
+    """
+    Returns the appropriate function that performs the collapse of
+    nodes node_u and node_v.
+
+    Parameters
+    ----------
+    graph: ProofGraph object
+
+    node_u, node_v: nodes
+        Nodes in proof graph
+
+    Returns
+    -------
+    function: function
+        Function that performs the collapse of nodes
+    """
     in_degree_u = graph.get_deductive_in_degree(node_u)
     in_degree_v = graph.get_deductive_in_degree(node_v)
 
@@ -108,6 +134,24 @@ def identify_rule(graph, node_u, node_v):
 
 
 def exec_rule(rule_function, graph, node_u, node_v):
+    """
+    Performs the collapse of nodes and returns the collapsed node.
+
+    Parameters
+    ----------
+    rule_function: function
+        Function that performs the collapse
+
+    graph: ProofGraph object.
+
+    node_u, node_v: nodes
+        Nodes in graph
+
+    Returns
+    -------
+    collapsed_node: node
+        Collapsed node.
+    """
     global seq_collapse
     collapsed_node = rule_function(graph, node_u, node_v)
     seq_collapse += 1
@@ -175,7 +219,7 @@ def rule_7(graph, node_u, node_v):
 def rule_8(graph, node_u, node_v):
     prepare_collapse(graph, node_u)
     collapse_nodes(graph, node_u, node_v, collapse_edge=True,
-                   redirect_ancestor_edges=True)
+                   ancestor_edges=True)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
@@ -188,7 +232,7 @@ def rule_9(graph, node_u, node_v):
 
 
 def rule_10(graph, node_u, node_v):
-    collapse_nodes(graph, node_u, node_v, redirect_ancestor_edges=True)
+    collapse_nodes(graph, node_u, node_v, ancestor_edges=True)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
@@ -202,7 +246,7 @@ def rule_11(graph, node_u, node_v):
 
 def rule_12(graph, node_u, node_v):
     prepare_collapse(graph, node_u, color=1)
-    collapse_nodes(graph, node_u, node_v, redirect_ancestor_edges=True)
+    collapse_nodes(graph, node_u, node_v, ancestor_edges=True)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
@@ -215,7 +259,7 @@ def rule_13(graph, node_u, node_v):
 
 
 def rule_14(graph, node_u, node_v):
-    collapse_nodes(graph, node_u, node_v, redirect_ancestor_edges=True)
+    collapse_nodes(graph, node_u, node_v, ancestor_edges=True)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
@@ -234,12 +278,12 @@ def rule_15(graph, node_u, node_v):
 def rule_16(graph, node_u, node_v):
     if graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET):
         collapse_nodes(graph, node_v, node_u, collapse_edge=True,
-                       redirect_ancestor_edges=True)
+                       ancestor_edges=True)
         graph.set_node_attribute(node_v, graph.HYPOTHESIS, True)
         return node_v
     else:
         collapse_nodes(graph, node_u, node_v, collapse_edge=True,
-                       redirect_ancestor_edges=True)
+                       ancestor_edges=True)
         graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
         return node_u
 
@@ -259,23 +303,35 @@ def rule_17(graph, node_u, node_v):
 
 def rule_18(graph, node_u, node_v):
     if graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET):
-        collapse_nodes(graph, node_v, node_u, redirect_ancestor_edges=True)
+        collapse_nodes(graph, node_v, node_u, ancestor_edges=True)
         graph.set_node_attribute(node_v, graph.HYPOTHESIS, True)
         return node_v
     else:
-        collapse_nodes(graph, node_u, node_v, redirect_ancestor_edges=True)
+        collapse_nodes(graph, node_u, node_v, ancestor_edges=True)
         graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
         return node_u
 
 
-def prepare_collapse(graph, node, **kwargs):
+def prepare_collapse(graph, node, color=None):
     """
-    Adiciona as arestas de ancestralidade no nó, se necessário.
-    Redireciona as arestas de ancestralidade, se necessário.
-    Atualiza o caminho das arestas de ancestralidade, se necessário.
-    Colore a aresta que sai do node se color for especificado
+    Prepare the node for collapse.
+
+    Adds ancestor edges or redirects them.
+
+    Update the path of ancestor edge.
+
+    Coloring the edge if node is not None.
+
+    Parameters
+    ----------
+    graph: GraphAdapter object
+
+    node: node
+        Node in graph
+
+    color: int
+        If color is given, set color of out edge with it.
     """
-    color = kwargs.get("color", None)
     is_ancestor_target = graph.get_node_attribute(node, graph.ANCESTOR_TARGET)
     if is_ancestor_target:
         redirect_ancestor_edges(graph, node, color)
@@ -287,21 +343,35 @@ def prepare_collapse(graph, node, **kwargs):
         graph.set_edge_attribute(node, out_neighbor, graph.COLOR, color)
 
 
-def collapse_nodes(graph, node_u, node_v, **kwargs):
+def collapse_nodes(graph, node_u, node_v, collapse_edge=None,
+                   ancestor_edges=None):
     """
-    Redireciona as arestas que chegam no node_v para o node_u, se existirem
-    Redireciona as arestas que saem do node_v para o node_u
-    Remove o node_v do grafo
+    Collapses node_u and node_v.
+
+    Redirects in and out edges of node_v to node_v.
+
+    Remove node_v.
+
+    Parameters
+    ----------
+    graph: GraphAdapter object
+
+    node_u, node_v: nodes
+        Nodes in the graph
+
+    collapse_edge: boolean
+        If True, collapse edges
+
+    ancestor_edges: boolean
+        If True, redirect ancestor edges
     """
-    collapse_edge = kwargs.get("collapse_edge", None)
-    redirect_ancestor_edges = kwargs.get("redirect_ancestor_edges", None)
     if collapse_edge:
         for (source_u, target_u) in graph.get_out_edges(node_u):
             for (source_v, target_v) in graph.get_out_edges(node_v):
                 if target_u == target_v:
                     graph.collapse_edges(node_u, node_v, target_u)
 
-    if redirect_ancestor_edges:
+    if ancestor_edges:
         graph.redirect_in_edges(node_v, node_u, ancestor_edges=True)
     else:
         graph.redirect_in_edges(node_v, node_u)
@@ -310,14 +380,23 @@ def collapse_nodes(graph, node_u, node_v, **kwargs):
 
 
 def redirect_ancestor_edges(graph, node, color):
+    """
+    Redirect in ancestor edges of node node to predecessor nodes.
+
+    Parameters
+    ----------
+    graph: GraphAdapter object
+
+    node: node
+        Node in the graph
+
+    color: int
+        If color is given, add it in edge path.
+
+    """
     ancestor_edges = graph.get_ancestor_in_edges(node)
     deductive_edges = graph.get_deductive_in_edges(node)
-    if not ancestor_edges:
-        pass
-        # raise exception here, excepted ancestor edges
-    if not deductive_edges:
-        pass
-        # raise exception here, excepted deductive edges
+
     for (ancestor_source, ancestor_target) in ancestor_edges:
         path = graph.get_edge_attribute(ancestor_source, ancestor_target,
                                         graph.PATH)
@@ -335,6 +414,20 @@ def redirect_ancestor_edges(graph, node, color):
 
 
 def add_ancestor_edges(graph, node, color):
+    """
+    Add ancestor edges between out_neighbor and in_neighbor(s) of the
+    node.
+
+    Parameters
+    ----------
+    graph: GraphAdapter object
+
+    node: node
+        Node in the graph
+
+    color: int
+        Color is added to edge path
+    """
     out_neighbor, = graph.get_deductive_out_neighbors(node)
     for in_neighbor in graph.get_deductive_in_neighbors(node):
         graph.add_ancestor_edge(out_neighbor, in_neighbor, new_color=color)
@@ -342,6 +435,17 @@ def add_ancestor_edges(graph, node, color):
 
 
 def is_connected_same_node(graph, node_u, node_v):
+    """
+    Return True if exists a node that is out_neighbor of node_u and
+    node_v. Return False if this node not exists.
+
+    Parameters
+    ----------
+    graph: GraphAdapter object
+
+    node_u, node_v: nodes
+        Nodes in the graph
+    """
     for out_neighbor_u in graph.get_deductive_out_neighbors(node_u):
         for out_neighbor_v in graph.get_deductive_out_neighbors(node_v):
             if out_neighbor_u == out_neighbor_v:
@@ -350,6 +454,16 @@ def is_connected_same_node(graph, node_u, node_v):
 
 
 def maximal_color(graph, node):
+    """
+    Return the maximal color of out_edges of node.
+
+    Parameters
+    ----------
+    graph: GraphAdapter object
+
+    node: node
+        Node in the graph
+    """
     max_color = 0
     for (source, target) in graph.get_deductive_out_edges(node):
         is_collapsed = graph.get_edge_attribute(source, target,

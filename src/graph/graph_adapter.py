@@ -11,6 +11,7 @@ from src.exceptions import exception
 class GraphAdapter(gph.Graph):
     """
     This class uses the graph structure of the networkx library.
+
     See more: https://networkx.github.io
     """
 
@@ -22,6 +23,13 @@ class GraphAdapter(gph.Graph):
         self.graph = nx.DiGraph()
 
     def set_graph(self, graph):
+        """
+        Set 'graph' to instance variable 'graph'.
+
+        Parameters
+        ----------
+        graph: DiGraph object
+        """
         self.graph = graph
 
     def load_dot(self, file_path):

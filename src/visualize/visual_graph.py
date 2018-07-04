@@ -5,6 +5,13 @@ from abc import ABCMeta, abstractmethod
 
 
 class VisualGraph:
+    """
+    Interface for the PyGraphviz library.
+
+    Implemented by VisualGraphAdapter class.
+
+    See visual_graph_adapter.py.
+    """
     __metaclass__ = ABCMeta
 
     @abstractmethod

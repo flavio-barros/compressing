@@ -5,6 +5,13 @@ from abc import ABCMeta, abstractmethod
 
 
 class Graph:
+    """
+    Interface for the Networkx library.
+
+    Implemented by GraphAdapter class.
+
+    See graph_adapter.py.
+    """
 
     __metaclass__ = ABCMeta
 

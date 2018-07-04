@@ -1,6 +1,10 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
+"""
+'exception' module has all exceptions raised.
+"""
+
 
 class Error(Exception):
     """
@@ -15,6 +19,9 @@ class Error(Exception):
 
 
 class FileError(Error):
+    """
+    Exception raised if an error occurs while reading the file 'dot'.
+    """
 
     def __init__(self, message, path):
         Error.__init__(self, message)
@@ -26,6 +33,10 @@ class FileError(Error):
 
 
 class GraphError(Error):
+    """
+    Base class for exceptions raised in GraphAdapter object.
+    """
+
     def __init__(self, message):
         self.message = message
 
@@ -34,6 +45,10 @@ class GraphError(Error):
 
 
 class NodeGraphError(GraphError):
+    """
+    Exception raised if an error occurs in node of GraphAdapter object.
+    """
+
     def __init__(self, node, message):
         GraphError.__init__(self, message)
         self.node = node
@@ -44,6 +59,10 @@ class NodeGraphError(GraphError):
 
 
 class EdgeGraphError(GraphError):
+    """
+    Exception raised if an error occurs in edge of GraphAdapter object.
+    """
+
     def __init__(self, source, target, message):
         GraphError.__init__(self, message)
         self.source = source
@@ -57,6 +76,11 @@ class EdgeGraphError(GraphError):
 
 
 class NodeAttributeGraphError(GraphError):
+    """
+    Exception raised if an error occurs in node attribute of
+    GraphAdapter object.
+    """
+
     def __init__(self, attribute, message):
         GraphError.__init__(self, message)
         self.attribute = attribute
@@ -67,6 +91,11 @@ class NodeAttributeGraphError(GraphError):
 
 
 class EdgeAttributeGraphError(GraphError):
+    """
+    Exception raised if an error occurs in edge attribute of
+    GraphAdapter object.
+    """
+
     def __init__(self, attribute, message):
         GraphError.__init__(self, message)
         self.attribute = attribute
@@ -77,6 +106,10 @@ class EdgeAttributeGraphError(GraphError):
 
 
 class ProofGraphError(Error):
+    """
+    Base class for exceptions raised in ProofGraph object.
+    """
+
     def __init__(self, message):
         Error.__init__(self, message)
 
@@ -85,6 +118,10 @@ class ProofGraphError(Error):
 
 
 class NodeProofGraphError(ProofGraphError):
+    """
+    Exception raised if an error occurs in node of ProofGraph object.
+    """
+
     def __init__(self, node, message):
         ProofGraphError.__init__(self, message)
         self.node = node
@@ -95,6 +132,10 @@ class NodeProofGraphError(ProofGraphError):
 
 
 class EdgeProofGraphError(ProofGraphError):
+    """
+    Exception raised if an error occurs in edge of ProofGraph object.
+    """
+
     def __init__(self, source, target, message):
         ProofGraphError.__init__(self, message)
         self.source = source
@@ -108,6 +149,11 @@ class EdgeProofGraphError(ProofGraphError):
 
 
 class NodeAttributeProofGraphError(ProofGraphError):
+    """
+    Exception raised if an error occurs in node attribute of
+    ProofGraph object.
+    """
+
     def __init__(self, attribute, message):
         ProofGraphError.__init__(self, message)
         self.attribute = attribute
@@ -118,6 +164,11 @@ class NodeAttributeProofGraphError(ProofGraphError):
 
 
 class EdgeAttributeProofGraphError(ProofGraphError):
+    """
+    Exception raised if an error occurs in edge attribute of
+    GraphAdapter object.
+    """
+
     def __init__(self, attribute, message):
         ProofGraphError.__init__(self, message)
         self.attribute = attribute
@@ -128,6 +179,11 @@ class EdgeAttributeProofGraphError(ProofGraphError):
 
 
 class WrongSettingGraphError(ProofGraphError):
+    """
+    Exception raised if a method in ProofGraph is called with a wrong
+    setting.
+    """
+
     def __init__(self, method, message):
         ProofGraphError.__init__(self, message)
         self.method = method

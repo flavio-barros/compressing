@@ -32,7 +32,6 @@ def main():
                                            proof_graph,
                                            node_u,
                                            node_v)
-        print "import"
 
     print "done."
 
