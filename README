@@ -1,0 +1,43 @@
+INTRODUÇÃO
+----------
+
+O sistema compressing é um compressor de provas em Lógica Minimal Implicacional.
+
+O sistema recebe como entrada um arquivo DOT contendo um grafo que representa a
+árvore de derivação da prova a ser comprimida, e produz como saída arquivos de
+visualização da prova, antes e após a compressão.
+
+
+PRÉ-REQUISITOS
+--------------
+
+- Python 2.7
+- Biblioteca networkx (versão 2.1). Disponível em: http://networkx.github.io/
+- Biblioteca pygraphviz (versão 1.3.1). Disponível em: http://pygraphviz.github.io/
+
+EXECUÇÃO
+--------
+
+Para executar a compressão é necessário executar o comando (do diretório principal):
+
+- python compressing.py -file (--visualize | --no-visualize)
+
+Onde "-file" é o caminho do arquivo DOT contendo o grafo de prova. A geração dos
+arquivos de visualização é opcional, e por padrão são sempre gerados. Para desativar
+a geração de arquivos de visualização, execute o comando com a opção "--no-visualize".
+
+Para mais ajuda, execute o comando
+
+- - python compressing.py -h
+
+TESTES
+------
+
+Para executar os testes e gerar os logs, execute o comando:
+
+- python -m unittest discover --verbose
+
+AUTOR
+-----
+
+José Flávio Cavalcante Barros Júnior (Matricula: 1712666)

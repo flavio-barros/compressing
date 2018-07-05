@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
-from src.graph import proof_graph as prg
+from util import constants
 
 """
 This module provide the necessary functions to perform the compression
@@ -46,7 +46,7 @@ def get_nodes_repeated_formulas(proof_graph):
         nodes_formula = {}
         for node in nodes:
             formula = proof_graph.get_node_attribute(node,
-                                                     prg.ProofGraph.FORMULA)
+                                                     constants.FORMULA)
             if formula in nodes_formula:
                 nodes_formula[formula].append(node)
             else:
@@ -68,7 +68,7 @@ def identify_rule(graph, node_u, node_v):
     graph: ProofGraph object
 
     node_u, node_v: nodes
-        Nodes in proof graph
+        Nodes in proof graph_structure
 
     Returns
     -------
@@ -145,7 +145,7 @@ def exec_rule(rule_function, graph, node_u, node_v):
     graph: ProofGraph object.
 
     node_u, node_v: nodes
-        Nodes in graph
+        Nodes in graph_structure
 
     Returns
     -------
@@ -327,7 +327,7 @@ def prepare_collapse(graph, node, color=None):
     graph: GraphAdapter object
 
     node: node
-        Node in graph
+        Node in graph_structure
 
     color: int
         If color is given, set color of out edge with it.
@@ -357,7 +357,7 @@ def collapse_nodes(graph, node_u, node_v, collapse_edge=None,
     graph: GraphAdapter object
 
     node_u, node_v: nodes
-        Nodes in the graph
+        Nodes in the graph_structure
 
     collapse_edge: boolean
         If True, collapse edges
@@ -388,7 +388,7 @@ def redirect_ancestor_edges(graph, node, color):
     graph: GraphAdapter object
 
     node: node
-        Node in the graph
+        Node in the graph_structure
 
     color: int
         If color is given, add it in edge path.
@@ -423,7 +423,7 @@ def add_ancestor_edges(graph, node, color):
     graph: GraphAdapter object
 
     node: node
-        Node in the graph
+        Node in the graph_structure
 
     color: int
         Color is added to edge path
@@ -444,7 +444,7 @@ def is_connected_same_node(graph, node_u, node_v):
     graph: GraphAdapter object
 
     node_u, node_v: nodes
-        Nodes in the graph
+        Nodes in the graph_structure
     """
     for out_neighbor_u in graph.get_deductive_out_neighbors(node_u):
         for out_neighbor_v in graph.get_deductive_out_neighbors(node_v):
@@ -462,7 +462,7 @@ def maximal_color(graph, node):
     graph: GraphAdapter object
 
     node: node
-        Node in the graph
+        Node in the graph_structure
     """
     max_color = 0
     for (source, target) in graph.get_deductive_out_edges(node):
