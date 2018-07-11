@@ -1,8 +1,8 @@
 """
-Test for src/graph_structure/graph_adapter.py
+Test for src/graph/graph_adapter.py
 """
 
-from graph_structure.graph_adapter import GraphAdapter, FileError, \
+from graph.graph_adapter import GraphAdapter, FileError, \
     NodeGraphError, EdgeGraphError, NodeAttributeGraphError, \
     EdgeAttributeGraphError
 import networkx as nx
@@ -48,7 +48,7 @@ class GraphAdapterTest(unt.TestCase):
         graph = nx.DiGraph()
         self.graph_adapter.set_graph(graph)
 
-        # Test node in the graph_structure
+        # Test node in the graph
         self.graph_adapter.add_node('1')
         self.assertTrue(self.graph_adapter.graph.has_node('1'))
 
@@ -69,7 +69,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_node('1')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure (node
+        # Test raising exception if node is not in the graph (node
         # 10000 not exists)
         self.assertRaises(
             NodeGraphError,
@@ -92,7 +92,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.nodes['1']["test_attr"] = True
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.get_node_attribute,
@@ -122,7 +122,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.nodes['1']["attr2"] = 2
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.get_all_node_attributes,
@@ -142,7 +142,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('3', '1')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.get_in_neighbors,
@@ -162,7 +162,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('1', '3')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.get_out_neighbors,
@@ -182,7 +182,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('3', '1')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.get_in_edges,
@@ -202,7 +202,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('1', '3')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.get_out_edges,
@@ -222,7 +222,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('3', '1')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.get_in_degree,
@@ -240,7 +240,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('1', '3')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.get_out_degree,
@@ -254,13 +254,13 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_node('1')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.remove_node,
             node='2')
 
-        # Test node in graph_structure
+        # Test node in graph
         self.graph_adapter.remove_node('1')
         self.assertFalse(graph.has_node('1'))
 
@@ -296,23 +296,23 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_node('3')
         self.graph_adapter.set_graph(graph)
 
-        # Test raising exception if source is not in the graph_structure
+        # Test raising exception if source is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.add_edge,
             source='4', target='3')
 
-        # Test if target is not in the graph_structure
+        # Test if target is not in the graph
         self.assertRaises(
             NodeGraphError,
             self.graph_adapter.add_edge,
             source='3', target='4')
 
-        # Test edge in graph_structure
+        # Test edge in graph
         self.graph_adapter.add_edge('1', '2')
         self.assertTrue(self.graph_adapter.graph.has_edge('1', '2'))
 
-        # Test edge attribute in graph_structure
+        # Test edge attribute in graph
         self.graph_adapter.add_edge('1', '3', test_attribute=1)
         self.assertEqual(
             self.graph_adapter.graph.edges['1', '3']["test_attribute"],
@@ -325,10 +325,10 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('1', '2')
         self.graph_adapter.set_graph(graph)
 
-        # Test if graph_structure has edge
+        # Test if graph has edge
         self.assertTrue(self.graph_adapter.has_edge('1', '2'))
 
-        # Test if graph_structure does not have
+        # Test if graph does not have
         self.assertFalse(self.graph_adapter.has_edge('2', '1'))
 
     def test_set_edge_attribute(self):
@@ -338,7 +338,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('1', '2')
         self.graph_adapter.set_graph(graph)
 
-        # Test if edge is not in the graph_structure
+        # Test if edge is not in the graph
         self.assertRaises(
             EdgeGraphError,
             self.graph_adapter.set_edge_attribute,
@@ -350,7 +350,7 @@ class GraphAdapterTest(unt.TestCase):
             self.graph_adapter.set_edge_attribute,
             source='1', target='2', attribute=[], value=True)
 
-        # Test edge attribute in the graph_structure
+        # Test edge attribute in the graph
         self.graph_adapter.set_edge_attribute('1', '2', "test_attribute", 0)
         self.assertEqual(
             self.graph_adapter.graph.edges['1', '2']["test_attribute"],
@@ -364,7 +364,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.edges['1', '2']["test_attribute"] = 0
         self.graph_adapter.set_graph(graph)
 
-        # Test if edge not exists in the graph_structure
+        # Test if edge not exists in the graph
         self.assertRaises(
             EdgeGraphError,
             self.graph_adapter.get_edge_attribute,
@@ -390,7 +390,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.edges['1', '2']["test_attribute2"] = 2
         self.graph_adapter.set_graph(graph)
 
-        # Test if edge is not in the graph_structure
+        # Test if edge is not in the graph
         self.assertRaises(
             EdgeGraphError,
             self.graph_adapter.get_all_edge_attributes,
@@ -408,13 +408,13 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('1', '2')
         self.graph_adapter.set_graph(graph)
 
-        # Test if edge is not in the graph_structure
+        # Test if edge is not in the graph
         self.assertRaises(
             EdgeGraphError,
             self.graph_adapter.remove_edge,
             source='2', target='1')
 
-        # Test edge in the graph_structure
+        # Test edge in the graph
         self.graph_adapter.remove_edge('1', '2')
         self.assertFalse(self.graph_adapter.graph.has_edge('1', '2'))
 
@@ -426,7 +426,7 @@ class GraphAdapterTest(unt.TestCase):
         graph.add_edge('2', '1')
         self.graph_adapter.set_graph(graph)
 
-        # Test edges in the graph_structure
+        # Test edges in the graph
         self.graph_adapter.remove_edges([('1', '2'), ('2', '1')])
         self.assertFalse(self.graph_adapter.graph.has_edge('1', '2'))
         self.assertFalse(self.graph_adapter.graph.has_edge('2', '1'))

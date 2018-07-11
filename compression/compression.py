@@ -68,7 +68,7 @@ def identify_rule(graph, node_u, node_v):
     graph: ProofGraph object
 
     node_u, node_v: nodes
-        Nodes in proof graph_structure
+        Nodes in proof graph
 
     Returns
     -------
@@ -145,7 +145,7 @@ def exec_rule(rule_function, graph, node_u, node_v):
     graph: ProofGraph object.
 
     node_u, node_v: nodes
-        Nodes in graph_structure
+        Nodes in graph
 
     Returns
     -------
@@ -327,7 +327,7 @@ def prepare_collapse(graph, node, color=None):
     graph: GraphAdapter object
 
     node: node
-        Node in graph_structure
+        Node in graph
 
     color: int
         If color is given, set color of out edge with it.
@@ -357,7 +357,7 @@ def collapse_nodes(graph, node_u, node_v, collapse_edge=None,
     graph: GraphAdapter object
 
     node_u, node_v: nodes
-        Nodes in the graph_structure
+        Nodes in the graph
 
     collapse_edge: boolean
         If True, collapse edges
@@ -388,7 +388,7 @@ def redirect_ancestor_edges(graph, node, color):
     graph: GraphAdapter object
 
     node: node
-        Node in the graph_structure
+        Node in the graph
 
     color: int
         If color is given, add it in edge path.
@@ -423,7 +423,7 @@ def add_ancestor_edges(graph, node, color):
     graph: GraphAdapter object
 
     node: node
-        Node in the graph_structure
+        Node in the graph
 
     color: int
         Color is added to edge path
@@ -444,7 +444,7 @@ def is_connected_same_node(graph, node_u, node_v):
     graph: GraphAdapter object
 
     node_u, node_v: nodes
-        Nodes in the graph_structure
+        Nodes in the graph
     """
     for out_neighbor_u in graph.get_deductive_out_neighbors(node_u):
         for out_neighbor_v in graph.get_deductive_out_neighbors(node_v):
@@ -462,7 +462,7 @@ def maximal_color(graph, node):
     graph: GraphAdapter object
 
     node: node
-        Node in the graph_structure
+        Node in the graph
     """
     max_color = 0
     for (source, target) in graph.get_deductive_out_edges(node):

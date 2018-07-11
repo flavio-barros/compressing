@@ -1,13 +1,13 @@
 """
-Test for src/graph_structure/proof_graph.py
+Test for src/graph/proof_graph.py
 """
 
 import unittest as unt
 import pygraphviz as pgv
-from graph_structure.proof_graph import ProofGraph, NodeProofGraphError, \
+from graph.proof_graph import ProofGraph, NodeProofGraphError, \
     EdgeProofGraphError, NodeAttributeProofGraphError, ProofGraphError, \
     EdgeAttributeProofGraphError, WrongSettingGraphError
-from graph_structure.graph_adapter import GraphAdapter
+from graph.graph_adapter import GraphAdapter
 
 
 class ProofGraphTest(unt.TestCase):
@@ -16,7 +16,7 @@ class ProofGraphTest(unt.TestCase):
         self.proof_graph = ProofGraph()
 
     def test_set_root(self):
-        # Test graph_structure with no root
+        # Test graph with no root
         graph = GraphAdapter()
         graph.add_node('1')
         graph.add_node('2')
@@ -25,7 +25,7 @@ class ProofGraphTest(unt.TestCase):
         self.proof_graph.set_graph(graph)
         self.assertRaises(ProofGraphError, self.proof_graph.set_root)
 
-        # Test graph_structure with more than one root
+        # Test graph with more than one root
         graph = GraphAdapter()
         graph.add_node('1')
         graph.add_node('2')
@@ -46,7 +46,7 @@ class ProofGraphTest(unt.TestCase):
         graph.add_node('2')
         graph.add_edge('1', '2')
 
-        # Test graph_structure type
+        # Test graph type
         self.proof_graph.set_graph(graph)
         self.assertIsInstance(self.proof_graph.graph, GraphAdapter)
 
@@ -55,7 +55,7 @@ class ProofGraphTest(unt.TestCase):
         graph.add_node('1')
         self.proof_graph.set_graph(graph)
 
-        # Test if node is not in the graph_structure
+        # Test if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.set_node_attribute,
@@ -82,7 +82,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_node_attribute('1', ProofGraph.LABEL, "test_label")
         self.proof_graph.set_graph(graph)
 
-        # Test if node is not in the graph_structure
+        # Test if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_node_attribute,
@@ -106,7 +106,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_node_attribute('1', ProofGraph.ANCESTOR_TARGET, True)
         self.proof_graph.set_graph(graph)
 
-        # Test if node is not in the graph_structure
+        # Test if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_all_node_attributes,
@@ -126,7 +126,7 @@ class ProofGraphTest(unt.TestCase):
         graph.add_edge('3', '1')
         self.proof_graph.set_graph(graph)
 
-        # Test if node is not in the graph_structure
+        # Test if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_in_edges,
@@ -146,7 +146,7 @@ class ProofGraphTest(unt.TestCase):
         graph.add_edge('1', '3')
         self.proof_graph.set_graph(graph)
 
-        # Test if node is not in the graph_structure
+        # Test if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_out_edges,
@@ -168,7 +168,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('3', '1', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test if node is not in the graph_structure
+        # Test if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_deductive_in_degree,
@@ -188,7 +188,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('1', '3', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test if node is not in the graph_structure
+        # Test if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_deductive_out_degree,
@@ -208,7 +208,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('3', '1', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test if node is not in the graph_structure
+        # Test if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_deductive_in_neighbors,
@@ -230,7 +230,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('1', '3', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_deductive_out_neighbors,
@@ -252,7 +252,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('3', '1', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_deductive_in_edges,
@@ -274,7 +274,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('1', '3', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_deductive_out_edges,
@@ -296,7 +296,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('3', '1', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_ancestor_in_edges,
@@ -318,7 +318,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('1', '3', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.get_ancestor_out_edges,
@@ -341,7 +341,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('4', '1', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if some node is not in the graph_structure
+        # Test raising exception if some node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.redirect_in_edges,
@@ -379,7 +379,7 @@ class ProofGraphTest(unt.TestCase):
         graph.set_edge_attribute('1', '4', ProofGraph.ANCESTOR, False)
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if some node is not in the graph_structure
+        # Test raising exception if some node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.redirect_out_edges,
@@ -404,7 +404,7 @@ class ProofGraphTest(unt.TestCase):
         graph.add_node('1')
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if node is not in the graph_structure
+        # Test raising exception if node is not in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.remove_node,
@@ -420,7 +420,7 @@ class ProofGraphTest(unt.TestCase):
         graph.add_node('2')
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if node not exists in the graph_structure
+        # Test raising exception if node not exists in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.add_ancestor_edge,
@@ -468,7 +468,7 @@ class ProofGraphTest(unt.TestCase):
         graph.add_node('3')
         self.proof_graph.set_graph(graph)
 
-        # Test raising exception if node not exists in the graph_structure
+        # Test raising exception if node not exists in the graph
         self.assertRaises(
             NodeProofGraphError,
             self.proof_graph.collapse_edges,
@@ -484,7 +484,7 @@ class ProofGraphTest(unt.TestCase):
             self.proof_graph.collapse_edges,
             node_u='1', node_v='2', target='4')
 
-        # Test raising exception if edge not exists in the graph_structure
+        # Test raising exception if edge not exists in the graph
         self.proof_graph.graph.add_edge('1', '3')
 
         self.assertRaises(

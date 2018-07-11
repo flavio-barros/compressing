@@ -4,7 +4,7 @@
 import argparse
 
 from compression import compression
-from graph_structure import proof_graph as pgr
+from graph import proof_graph as pgr
 from visualize import visual_proof_graph as vpg
 
 
@@ -14,7 +14,7 @@ def main():
 
     # file argument
     parser.add_argument("file", type=file,
-                        help="read proof graph_structure from file")
+                        help="read proof graph from file")
 
     # visualize argument
     parser.add_argument("--visualize", dest='visualize', action='store_true',

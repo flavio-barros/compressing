@@ -9,7 +9,7 @@ from graph import Graph
 
 class GraphAdapter(Graph):
     """
-    This class uses the graph_structure structure of the networkx library.
+    This class uses the graph structure of the networkx library.
 
     See more: https://networkx.github.io
     """
@@ -17,13 +17,13 @@ class GraphAdapter(Graph):
     def __init__(self):
         """
         Initializes a GraphAdapter instance and assign None to
-        graph_structure variable.
+        graph variable.
         """
         self.graph = nx.DiGraph()
 
     def set_graph(self, graph):
         """
-        Set 'graph_structure' to instance variable 'graph_structure'.
+        Set 'graph' to instance variable 'graph'.
 
         Parameters
         ----------
@@ -38,7 +38,7 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         file_path: path file
-            Dot file containing the proof graph_structure.
+            Dot file containing the proof graph.
 
         Raises
         ------
@@ -63,7 +63,7 @@ class GraphAdapter(Graph):
 
     def to_agraph(self):
         """
-        Return a Agraph (from pygraphviz library) instance from graph_structure
+        Return a Agraph (from pygraphviz library) instance from graph
         variable.
 
         Returns
@@ -76,23 +76,23 @@ class GraphAdapter(Graph):
 
     def add_node(self, node):
         """
-        Add node to graph_structure
+        Add node to graph
 
         Parameters
         ----------
         node: hashable type
-            Node to be added to the graph_structure.
+            Node to be added to the graph.
         """
         self.graph.add_node(node)
 
     def get_nodes(self):
         """
-        Return a list of all nodes in the graph_structure.
+        Return a list of all nodes in the graph.
 
         Returns
         -------
         nodes: list
-            List of all nodes in the graph_structure
+            List of all nodes in the graph
         """
         nodes = list(self.graph.nodes)
         return nodes
@@ -104,7 +104,7 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         attribute: hashable type
             Node attribute
@@ -118,13 +118,13 @@ class GraphAdapter(Graph):
             'attribute' is not hashable type.
 
         NodeGraphError
-            'node' is not in the graph_structure.
+            'node' is not in the graph.
         """
         try:
             if self.graph.has_node(node):
                 self.graph.nodes[node][attribute] = value
             else:
-                message = "is not in the graph_structure"
+                message = "is not in the graph"
                 raise NodeGraphError(node, message)
         except TypeError:
             message = "is not hashable"
@@ -137,7 +137,7 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         attribute: hashable type
             Node attribute
@@ -148,7 +148,7 @@ class GraphAdapter(Graph):
             'node' does not have 'attribute'.
 
         NodeGraphError
-            'node' is not in the graph_structure.
+            'node' is not in the graph.
 
         Returns
         -------
@@ -160,7 +160,7 @@ class GraphAdapter(Graph):
                 node_attribute = self.graph.nodes[node][attribute]
                 return node_attribute
             else:
-                message = "is not in the graph_structure"
+                message = "is not in the graph"
                 raise NodeGraphError(node, message)
         except TypeError:
             message = "is not hashable"
@@ -176,12 +176,12 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         Raises
         ------
         NodeGraphError
-            'node' is not in the graph_structure.
+            'node' is not in the graph.
 
         Returns
         -------
@@ -192,7 +192,7 @@ class GraphAdapter(Graph):
             attributes = self.graph.nodes[node]
             return attributes
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(node, message)
 
     def get_in_neighbors(self, node):
@@ -203,12 +203,12 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         Raises
         ------
         NodeGraphError
-            'node' is not in the graph_structure.
+            'node' is not in the graph.
 
         Returns
         -------
@@ -219,7 +219,7 @@ class GraphAdapter(Graph):
             in_neighbors = list(self.graph.predecessors(node))
             return in_neighbors
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(node, message)
 
     def get_out_neighbors(self, node):
@@ -230,12 +230,12 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         Raises
         ------
         NodeGraphError
-            'node' is not in the graph_structure.
+            'node' is not in the graph.
 
         Returns
         -------
@@ -246,7 +246,7 @@ class GraphAdapter(Graph):
             out_neighbors = list(self.graph.successors(node))
             return out_neighbors
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(node, message)
 
     def get_in_edges(self, node):
@@ -256,12 +256,12 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         Raises
         ------
         NodeGraphError
-            'node' is not in the graph_structure.
+            'node' is not in the graph.
 
         Returns
         -------
@@ -272,7 +272,7 @@ class GraphAdapter(Graph):
             in_edges = self.graph.in_edges(node, data=False)
             return in_edges
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(node, message)
 
     def get_out_edges(self, node):
@@ -282,12 +282,12 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         Raises
         ------
         NodeGraphError
-            'node' is not in the graph_structure
+            'node' is not in the graph
 
         Returns
         -------
@@ -299,7 +299,7 @@ class GraphAdapter(Graph):
             out_edges = list(self.graph.out_edges(node, data=False))
             return out_edges
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(node, message)
 
     def get_in_degree(self, node):
@@ -309,12 +309,12 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: node
-            Node in the graph_structure
+            Node in the graph
 
         Raises
         ------
         GraphError
-            'node' is not in the graph_structure
+            'node' is not in the graph
 
         Returns
         -------
@@ -326,7 +326,7 @@ class GraphAdapter(Graph):
             return in_degree
 
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(node, message)
 
     def get_out_degree(self, node):
@@ -336,12 +336,12 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         node: node
-            Node in the graph_structure
+            Node in the graph
 
         Raises
         ------
         GraphError
-            'node' is not in the graph_structure
+            'node' is not in the graph
 
         Returns
         -------
@@ -352,61 +352,61 @@ class GraphAdapter(Graph):
             out_degree = self.graph.out_degree(node)
             return out_degree
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(node, message)
 
     def remove_node(self, node):
         """
-        Remove node from the graph_structure.
+        Remove node from the graph.
 
         Parameters
         ----------
         node: node
-            Node in the graph_structure
+            Node in the graph
 
         Raises
         ------
         GraphError
-            'node' is not in the graph_structure
+            'node' is not in the graph
         """
         if self.graph.has_node(node):
             self.graph.remove_node(node)
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(node, message)
 
     def has_node(self, node):
         """
-        Return True if node exists in graph_structure. Return False if node not
+        Return True if node exists in graph. Return False if node not
         exists.
 
         Parameters
         ----------
         node: node
-            Node in the graph_structure
+            Node in the graph
         """
         return self.graph.has_node(node)
 
     def get_edges(self):
         """
-        Return a list with all edges in the graph_structure.
+        Return a list with all edges in the graph.
 
         Returns
         -------
         edges: list
-            List with all edges in the graph_structure
+            List with all edges in the graph
         """
         edges = list(self.graph.edges)
         return edges
 
     def add_edge(self, source, target, **kwargs):
         """
-        Add the edge (source, target) in the graph_structure.
+        Add the edge (source, target) in the graph.
 
         Parameters
         ----------
         source, target: hashable types
-            Nodes in the graph_structure
+            Nodes in the graph
 
         kwargs: keywords arguments, optional
             Attributes of edge.
@@ -414,7 +414,7 @@ class GraphAdapter(Graph):
         Raises
         ------
         NodeGraphError
-            'source' or 'target' is not in the graph_structure.
+            'source' or 'target' is not in the graph.
 
         AttributeError
             Some attribute in 'kwargs' is not hashable.
@@ -430,20 +430,20 @@ class GraphAdapter(Graph):
                             message = "is not hashable"
                             raise EdgeAttributeGraphError(attribute, message)
             else:
-                message = "is not in the graph_structure"
+                message = "is not in the graph"
                 raise NodeGraphError(target, message)
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise NodeGraphError(source, message)
 
     def has_edge(self, source, target):
         """
-        Return True if edge exists in the graph_structure, False if not exists
+        Return True if edge exists in the graph, False if not exists
 
         Parameters
         ----------
         source, target: hashable type
-            Nodes in the graph_structure
+            Nodes in the graph
         """
         return self.graph.has_edge(source, target)
 
@@ -454,7 +454,7 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         source, target: hashable type
-            Nodes in the graph_structure
+            Nodes in the graph
 
         attribute: hashable type
             Node attribute
@@ -465,7 +465,7 @@ class GraphAdapter(Graph):
         Raises
         ------
         EdgeGraphError
-            The edge (source, target) is not in the graph_structure
+            The edge (source, target) is not in the graph
 
         EdgeAttributeGraphError
             'attribute' is not hashable type.
@@ -474,7 +474,7 @@ class GraphAdapter(Graph):
             if self.graph.has_edge(source, target):
                 self.graph.edges[source, target][attribute] = value
             else:
-                message = "is not in the graph_structure"
+                message = "is not in the graph"
                 raise EdgeGraphError(source, target, message)
         except TypeError:
             message = "is not hashable"
@@ -490,7 +490,7 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         source, target: hashable type
-            Nodes in the graph_structure
+            Nodes in the graph
 
         attribute: hashable type
             Node attribute
@@ -501,7 +501,7 @@ class GraphAdapter(Graph):
             'attribute' is not hashable type.
 
         EdgeGraphError
-            The edge (source, target) is not in the graph_structure
+            The edge (source, target) is not in the graph
 
         Returns
         -------
@@ -519,7 +519,7 @@ class GraphAdapter(Graph):
                 message = "not exists"
                 raise EdgeAttributeGraphError(attribute, message)
         else:
-            message = "is not in the graph_structure"
+            message = "is not in the graph"
             raise EdgeGraphError(source, target, message)
 
     def get_all_edge_attributes(self, source, target):
@@ -529,12 +529,12 @@ class GraphAdapter(Graph):
         Parameters
         ----------
         source, target: hashable type
-            Nodes in the graph_structure
+            Nodes in the graph
 
         Raises
         ------
         EdgeGraphError
-            The edge (source, target) is not in the graph_structure.
+            The edge (source, target) is not in the graph.
 
         Returns
         -------
@@ -549,17 +549,17 @@ class GraphAdapter(Graph):
 
     def remove_edge(self, source, target):
         """
-        Remove edge from the graph_structure.
+        Remove edge from the graph.
 
         Parameters
         ----------
         source, target: hashable type
-            Nodes in the graph_structure
+            Nodes in the graph
 
         Raises
         ------
         EdgeGraphError
-            The edge (source, target) is not in the graph_structure.
+            The edge (source, target) is not in the graph.
         """
         if self.graph.has_edge(source, target):
             self.graph.remove_edge(source, target)
@@ -569,12 +569,12 @@ class GraphAdapter(Graph):
 
     def remove_edges(self, edges):
         """
-        Remove edges from the graph_structure.
+        Remove edges from the graph.
 
         Parameters
         ----------
         edges: list of (source, target)
-            Edges in the graph_structure
+            Edges in the graph
         """
         self.graph.remove_edges_from(edges)
 

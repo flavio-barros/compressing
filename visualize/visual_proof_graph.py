@@ -12,7 +12,7 @@ class VisualProofGraph:
     This class uses a VisualProofGraph instance for generate
     visualizations of proof graphs.
 
-    This class generates visualizations of the entire graph_structure. The
+    This class generates visualizations of the entire graph. The
     generation takes place before and after the compression of the
     proof.
     """
@@ -25,7 +25,7 @@ class VisualProofGraph:
         """
         Initializes a VisualProofGraph instance.
 
-        Set GraphAdapter object to instance variable 'graph_structure'.
+        Set GraphAdapter object to instance variable 'graph'.
 
         Initializes instance variable 'vgraph' (VisualGraphAdapter)
         with None.
@@ -35,7 +35,7 @@ class VisualProofGraph:
 
     def draw_input(self):
         """
-        Generates the visualization of the graph_structure in 'graph_structure' variable.
+        Generates the visualization of the graph in 'graph' variable.
 
         The file generated is "pdf/input.pdf"
         """
@@ -44,7 +44,7 @@ class VisualProofGraph:
 
     def draw_final(self):
         """
-        Generates the visualization of the graph_structure in 'graph_structure' variable.
+        Generates the visualization of the graph in 'graph' variable.
 
         The file generated is "pdf/final.pdf"
         """

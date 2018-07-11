@@ -3,7 +3,7 @@ Test for src/visualize/visual_graph_adapter.py
 """
 
 import unittest as unt
-from graph_structure.graph_adapter import GraphAdapter
+from graph.graph_adapter import GraphAdapter
 from visualize.visual_graph_adapter import VisualGraphAdapter
 
 import networkx as nx

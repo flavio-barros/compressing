@@ -7,9 +7,9 @@ from visualize import visual_graph as vgr
 
 class VisualGraphAdapter(vgr.VisualGraph):
     """
-    This class uses the graph_structure structure of the pygraphviz library.
+    This class uses the graph structure of the pygraphviz library.
 
-    This class is used to generate PDF files of graph_structure visualization.
+    This class is used to generate PDF files of graph visualization.
 
     See more: http://pygraphviz.github.io/
     """
@@ -33,7 +33,7 @@ class VisualGraphAdapter(vgr.VisualGraph):
         """
         Initializes a VisualGraphAdapter instance.
 
-        Set 'graph_structure' to instance variable 'graph_structure' (AGraph type).
+        Set 'graph' to instance variable 'graph' (AGraph type).
 
         Creates 'name' and 'path' variables.
 
@@ -56,7 +56,7 @@ class VisualGraphAdapter(vgr.VisualGraph):
 
     def draw_pdf(self):
         """
-        Generates PDF file from instance variable 'graph_structure'.
+        Generates PDF file from instance variable 'graph'.
 
         The PDF file is saved in 'path' (instance variable) and with
         'name' (instance variable).
@@ -66,24 +66,24 @@ class VisualGraphAdapter(vgr.VisualGraph):
 
     def get_nodes(self):
         """
-        Return a list with all nodes in graph_structure.
+        Return a list with all nodes in graph.
 
         Returns
         -------
         nodes: List
-            List with all nodes in graph_structure.
+            List with all nodes in graph.
         """
         nodes = self.agraph.nodes()
         return nodes
 
     def get_edges(self):
         """
-        Return a list with all edges (u, v) in graph_structure.
+        Return a list with all edges (u, v) in graph.
 
         Returns
         -------
         edges: List
-            List with all edges in graph_structure.
+            List with all edges in graph.
         """
         return self.agraph.edges()
 
@@ -94,7 +94,7 @@ class VisualGraphAdapter(vgr.VisualGraph):
         Parameters
         ----------
         source, target: nodes
-            Nodes in the graph_structure
+            Nodes in the graph
         """
         return self.agraph.get_edge(source, target)
 
@@ -105,12 +105,12 @@ class VisualGraphAdapter(vgr.VisualGraph):
         Parameters
         ----------
         n: node
-            Node in the graph_structure
+            Node in the graph
 
         Returns
         -------
         node: node object
-            Node in the graph_structure
+            Node in the graph
         -------
         """
         node = self.agraph.get_node(n)
@@ -123,7 +123,7 @@ class VisualGraphAdapter(vgr.VisualGraph):
         Parameters
         ----------
         source, target: hashable type
-            Nodes in the graph_structure
+            Nodes in the graph
 
         attribute: hashable type
             edge attribute
@@ -144,7 +144,7 @@ class VisualGraphAdapter(vgr.VisualGraph):
         Parameters
         ----------
         source, target: hashable type
-            Nodes in the graph_structure
+            Nodes in the graph
 
         attribute: hashable type
             Node attribute
@@ -167,7 +167,7 @@ class VisualGraphAdapter(vgr.VisualGraph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         attribute: hashable type
             Node attribute
@@ -188,7 +188,7 @@ class VisualGraphAdapter(vgr.VisualGraph):
         Parameters
         ----------
         node: hashable type
-            Node in the graph_structure
+            Node in the graph
 
         attribute: hashable type
             Node attribute

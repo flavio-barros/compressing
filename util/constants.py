@@ -1,5 +1,8 @@
+#!/usr/local/bin/python
+# coding: utf-8
+
 """
-Constants for graph_structure/proof_graph.py (ProofGraph class)
+Constants for graph/proof_graph.py (ProofGraph class)
 """
 # Nodes attributes
 LABEL = "label"
