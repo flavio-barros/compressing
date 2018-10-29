@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
+
 import networkx as nx
 import pygraphviz as pgv
 
@@ -60,6 +61,9 @@ class GraphAdapter(Graph):
         except IOError:
             message = "not exists"
             raise FileError(file_path, message)
+
+    def save_dot(self, file_path):
+        nx.nx_agraph.write_dot(self.graph, file_path)
 
     def to_agraph(self):
         """
@@ -577,6 +581,9 @@ class GraphAdapter(Graph):
             Edges in the graph
         """
         self.graph.remove_edges_from(edges)
+
+    def get_all_shortest_paths(self, source, target):
+        return nx.all_shortest_paths(self.graph, source, target)
 
 
 class FileError(Exception):

@@ -9,6 +9,7 @@ LABEL = "label"
 FORMULA = "formula"
 ANCESTOR_TARGET = "ancestor_target"
 DISCHARGE = "discharge"
+LEVEL = "level"
 
 # Edges attributes
 DEDUCTIVE_COLOR = "color"
@@ -17,6 +18,7 @@ PATH = "path"
 HYPOTHESIS = "hypothesis"
 DEPENDENCIES = "dependencies"
 COLLAPSED = "collapsed"
+LAMBDA_DATA = "lambda_data"
 
 """
 Constants for visualize/visual_graph_adapter (VisualGraphAdapter class)

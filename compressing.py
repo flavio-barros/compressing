@@ -6,6 +6,8 @@ import argparse
 from compression import compression
 from graph import proof_graph as pgr
 from visualize import visual_proof_graph as vpg
+from util import convert
+from verification import verification
 
 
 def main():
@@ -24,36 +26,60 @@ def main():
                         help="not generates pdf visualization")
     parser.set_defaults(visualize=True)
 
+    parser.add_argument("--convert", dest='convert', action='store_true',
+                        help="converts input graph")
+    parser.add_argument("--no-convert", dest='convert',
+                        action='store_false',
+                        help="not converts input graph")
+    parser.set_defaults(visualize=False)
+
     args = parser.parse_args()
+
+    proof_graph = None
+
+    if args.convert:
+        proof_graph = convert.convert_input(args.file)
 
     proof_graph = pgr.ProofGraph(file_path=args.file, init_data=True)
 
-    visual_proof_graph = vpg.VisualProofGraph(proof_graph)
+    visual_pg = vpg.VisualProofGraph(proof_graph)
 
     if args.visualize:
-        visual_proof_graph.draw_input()
+        visual_pg.draw_input()
 
-    print "Starting compressing"
+    print "Compressing (start)"
 
-    nodes_repeated_formulas = \
-        compression.get_nodes_repeated_formulas(proof_graph)
+    repeated_formulas = compression.get_nodes_repeated_formulas(proof_graph)
+    collapse = 1
+    for level, repeated_nodes in repeated_formulas.items():
+        for nodes in repeated_nodes:
+            node_u = nodes.pop()
+            for node_v in nodes:
+                # print "Collapse: ", collapse
+                rule_function = compression.identify_rule(proof_graph, node_u,
+                                                          node_v)
+                rule_name = rule_function.__name__
+                # print "Rule:", rule_name
+                graph_name = "collapse " + str(collapse) + "-" + rule_name
+                p1, p2, a_edges = visual_pg.draw_collapse(graph_name+"-Antes",
+                                                 [node_u, node_v], before=True)
+                node_u = compression.exec_rule(rule_function, proof_graph,
+                                               node_u, node_v)
+                visual_pg.draw_collapse(graph_name+"-Depois", [node_u],
+                                        after=True, premisses_1=p1,
+                                        premisses_2=p2, a_edges=a_edges)
+                collapse += 1
 
-    for nodes in nodes_repeated_formulas:
-        node_u = nodes.pop()
-        for node_v in nodes:
-            rule_function = compression.identify_rule(proof_graph,
-                                                      node_u,
-                                                      node_v)
-            node_u = compression.exec_rule(rule_function,
-                                           proof_graph,
-                                           node_u,
-                                           node_v)
-
-    print "Compression done"
+    print "Compressing (done)"
 
     if args.visualize:
-        print "Generating PDF files"
-        visual_proof_graph.draw_final()
+        print "Generating PDF files (start)"
+        visual_pg.draw_final()
+        print "Generating PDF files (done)"
+
+    print "verifying (start)"
+    # verification.verifying(proof_graph)
+    print "verifying (done)"
 
 
 if __name__ == '__main__':

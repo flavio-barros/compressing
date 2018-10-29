@@ -19,6 +19,10 @@ identify_rule: identifies the rule and return the corresponding
 exec_rule: performs two-node collapse.
 """
 
+ATGT = "ancestor_target_feature"
+CPS = "collapsed_feature"
+HYP = "hypothesis_feature"
+
 
 def get_nodes_repeated_formulas(proof_graph):
     """
@@ -40,9 +44,11 @@ def get_nodes_repeated_formulas(proof_graph):
         A List of list of nodes with repeated formulas in same level of
         derivation tree.
     """
-    repeated_formulas = []
-    nodes_level = proof_graph.nodes_level
+    level = 0
+    repeated_formulas = {}
+    nodes_level = proof_graph.get_nodes_level()
     for level, nodes in nodes_level.items():
+        repeated_formulas[level] = []
         nodes_formula = {}
         for node in nodes:
             formula = proof_graph.get_node_attribute(node,
@@ -53,7 +59,7 @@ def get_nodes_repeated_formulas(proof_graph):
                 nodes_formula[formula] = [node]
         for formula, nodes2 in nodes_formula.items():
             if len(nodes2) > 1:
-                repeated_formulas.append(nodes2)
+                repeated_formulas[level].append(nodes2)
         level += 1
     return repeated_formulas
 
@@ -84,53 +90,111 @@ def identify_rule(graph, node_u, node_v):
     ancestor_target_u = graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET)
     ancestor_target_v = graph.get_node_attribute(node_v, graph.ANCESTOR_TARGET)
 
-    if not ancestor_target_u and not ancestor_target_v:
-        if (in_degree_u > 0 and in_degree_v > 0) and (
-                out_degree_u == 1 and out_degree_v == 1):
+    is_collapsed_u = graph.get_node_attribute(node_u, graph.COLLAPSED)
+    is_collapsed_v = graph.get_node_attribute(node_v, graph.COLLAPSED)
+
+    is_hypothesis_u = False
+    is_hypothesis_v = False
+
+    if in_degree_u == 0:
+        is_hypothesis_u = True
+    if in_degree_v == 0:
+        is_hypothesis_v = True
+
+    collapse_edge = common_out_neighbor(graph, node_v, node_u)
+
+    formula_u = graph.get_node_attribute(node_u, "formula")
+    formula_v = graph.get_node_attribute(node_v, "formula")
+
+    # print "node_u: [ id: ", node_u, "formula: ", formula_u, ", ancestor: ", ancestor_target_u, "]"
+    # print "node_v: [ id: ", node_v, "formula: ", formula_v, ", ancestor: ", ancestor_target_v, "]"
+
+    features_u = get_node_features(graph, node_u)
+    features_v = get_node_features(graph, node_v)
+
+    if not collapse_edge:
+        if not features_u and not features_v:
             return rule_1
-        elif (in_degree_u == 0 or in_degree_v == 0) and (
-                out_degree_u == 1 and out_degree_v == 1):
-            if in_degree_u == 0 and in_degree_v == 0:
-                return rule_4
-            elif in_degree_u == 0:
-                return rule_2
-            elif in_degree_v == 0:
-                return rule_3
-        elif out_degree_u > 1 or out_degree_v > 1:
-            if in_degree_u > 0 and in_degree_v > 0:
-                return rule_5
-            else:
-                return rule_6
-    elif ancestor_target_u and ancestor_target_v:
-        if is_connected_same_node(graph, node_u, node_v):
-            if in_degree_u > 0 and in_degree_v > 0:
-                return rule_7
-            elif in_degree_u > 0 and in_degree_v == 0:
-                return rule_8
-            elif in_degree_u == 0 and in_degree_v > 0:
-                return rule_9
-            else:
-                return rule_10
+        elif features_u == {HYP} and not features_v:
+            return rule_2
+        elif not features_u and features_v == {HYP}:
+            return rule_3
+        elif features_u == {HYP} and features_v == {HYP}:
+            return rule_4
+        elif features_u == {CPS} and not features_v:
+            return rule_5
+        elif features_u == {CPS} and features_v == {HYP}:
+            return rule_6
+        elif features_u == {ATGT} and features_v == {ATGT}:
+            return rule_11
+        elif (features_u == {ATGT} and not features_v) or \
+                (not features_u and features_v == {ATGT}):
+            return rule_11a
+        elif (features_u == {ATGT} and features_v == {HYP}) or \
+                (features_u == {HYP} and features_v == {ATGT}):
+            return rule_11b
+        elif (features_u == {ATGT, HYP} and not features_v) or \
+                (not features_u and features_v == {ATGT, HYP}):
+            return rule_11c
+        elif (features_u == {ATGT, HYP} and features_v == {HYP}) or \
+                (features_u == {HYP} and features_v == {ATGT, HYP}):
+            return rule_11d
+        elif features_u == {CPS, HYP} and features_v == {ATGT, HYP}:
+            return rule_11d
+        elif features_u == {ATGT} and features_v == {ATGT, HYP}:
+            return rule_12
+        elif features_u == {ATGT, HYP} and features_v == {ATGT}:
+            return rule_13
+        elif features_u == {ATGT, HYP} and features_v == {ATGT, HYP}:
+            return rule_14
+        elif features_u == {CPS} and features_v == {ATGT}:
+            return rule_17
+        elif features_u == {CPS} and features_v == {ATGT, HYP}:
+            return rule_18
+        elif features_u == {CPS, HYP} and features_v == {HYP}:
+            return rule_11f
         else:
-            if in_degree_u > 0 and in_degree_v > 0:
-                return rule_11
-            elif in_degree_u > 0 and in_degree_v == 0:
-                return rule_12
-            elif in_degree_u == 0 and in_degree_v > 0:
-                return rule_13
-            else:
-                return rule_14
-    elif ancestor_target_u or ancestor_target_v:
-        if is_connected_same_node(graph, node_u, node_v):
-            if in_degree_u == 0 or in_degree_v == 0:
-                return rule_16
-            elif in_degree_u > 0 and in_degree_v > 0:
-                return rule_15
+            raise Exception("0 - Regra desconhecida: ftu: {}, ftv: {}".format(
+                features_u, features_v))
+    else:
+        if features_u == {ATGT} and features_v == {ATGT}:
+            return rule_7
+        elif features_u == {ATGT} and features_v == {ATGT, HYP}:
+            return rule_8
+        elif features_u == {ATGT, HYP} and features_v == {ATGT}:
+            return rule_9
+        elif features_u == {ATGT, HYP} and features_v == {ATGT, HYP}:
+            return rule_10
+        elif features_u == {CPS} and features_v == {ATGT}:
+            return rule_15
+        elif features_u == {ATGT} and features_v == {ATGT, HYP}:
+            return rule_16
+        elif features_u == {HYP, CPS} and features_v == {HYP, ATGT}:
+            return rule_11e
+        elif features_u == {CPS} and not features_v:
+            return rule_11g
         else:
-            if in_degree_u == 0 or in_degree_v == 0:
-                return rule_18
-            elif in_degree_u > 0 and in_degree_v > 0:
-                return rule_17
+            raise Exception("1 - Regra desconhecida: ftu: {}, ftv: {}".format(
+                features_u, features_v))
+
+
+def get_node_features(graph, node):
+    features = set()
+
+    ancestor_target = graph.get_node_attribute(node, graph.ANCESTOR_TARGET)
+    collapsed = graph.get_node_attribute(node, graph.COLLAPSED)
+    in_deductive_degree = graph.get_deductive_in_degree(node)
+
+    if ancestor_target:
+        features.add(ATGT)
+
+    if collapsed:
+        features.add(CPS)
+
+    if in_deductive_degree == 0:
+        features.add(HYP)
+
+    return features
 
 
 def exec_rule(rule_function, graph, node_u, node_v):
@@ -154,6 +218,7 @@ def exec_rule(rule_function, graph, node_u, node_v):
     """
     global seq_collapse
     collapsed_node = rule_function(graph, node_u, node_v)
+    graph.set_node_attribute(collapsed_node, graph.COLLAPSED, True)
     seq_collapse += 1
     return collapsed_node
 
@@ -218,21 +283,27 @@ def rule_7(graph, node_u, node_v):
 
 def rule_8(graph, node_u, node_v):
     prepare_collapse(graph, node_u)
-    collapse_nodes(graph, node_u, node_v, collapse_edge=True,
-                   ancestor_edges=True)
+    common_node = get_same_connected_node(graph, node_u, node_v)
+    redirect_ancestor_edges_to(graph, node_v, common_node)
+    collapse_nodes(graph, node_u, node_v, collapse_edge=True)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
 
 def rule_9(graph, node_u, node_v):
     prepare_collapse(graph, node_v)
+    common_node = get_same_connected_node(graph, node_u, node_v)
+    redirect_ancestor_edges_to(graph, node_u, common_node)
     collapse_nodes(graph, node_u, node_v, collapse_edge=True)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
 
 def rule_10(graph, node_u, node_v):
-    collapse_nodes(graph, node_u, node_v, ancestor_edges=True)
+    common_node = get_same_connected_node(graph, node_u, node_v)
+    redirect_ancestor_edges_to(graph, node_u, common_node)
+    redirect_ancestor_edges_to(graph, node_v, common_node)
+    collapse_nodes(graph, node_u, node_v, collapse_edge=True)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
@@ -244,22 +315,108 @@ def rule_11(graph, node_u, node_v):
     return node_u
 
 
+def rule_11a(graph, node_u, node_v):
+    prepare_collapse(graph, node_u, color=1)
+    prepare_collapse(graph, node_v, color=2)
+    collapse_nodes(graph, node_u, node_v)
+    return node_u
+
+
+def rule_11b(graph, node_u, node_v):
+    ancestor_target_u = graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET)
+    if ancestor_target_u:
+        prepare_collapse(graph, node_u, color=1)
+    else:
+        prepare_collapse(graph, node_v, color=1)
+    collapse_nodes(graph, node_u, node_v)
+    graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
+    return node_u
+
+
+def rule_11c(graph, node_u, node_v):
+    ancestor_target_u = graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET)
+    if ancestor_target_u:
+        out_neighbor_u, = graph.get_out_neighbors(node_u)
+        redirect_ancestor_edges_to(graph, node_u, out_neighbor_u)
+        prepare_collapse(graph, node_v, color=1)
+        collapse_nodes(graph, node_u, node_v)
+        graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
+        return node_u
+    else:
+        out_neighbor_v, = graph.get_out_neighbors(node_v)
+        redirect_ancestor_edges_to(graph, node_v, out_neighbor_v)
+        prepare_collapse(graph, node_u, color=1)
+        collapse_nodes(graph, node_v, node_u)
+        graph.set_node_attribute(node_v, graph.HYPOTHESIS, True)
+        return node_v
+
+
+def rule_11d(graph, node_u, node_v):
+    ancestor_target_u = graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET)
+    if ancestor_target_u:
+        out_neighbor_u, = graph.get_out_neighbors(node_u)
+        redirect_ancestor_edges_to(graph, node_u, out_neighbor_u)
+        collapse_nodes(graph, node_u, node_v)
+        graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
+        return node_u
+    else:
+        out_neighbor_v, = graph.get_out_neighbors(node_v)
+        redirect_ancestor_edges_to(graph, node_v, out_neighbor_v)
+        collapse_nodes(graph, node_v, node_u)
+        graph.set_node_attribute(node_v, graph.HYPOTHESIS, True)
+        return node_v
+
+
+def rule_11e(graph, node_u, node_v):
+    common_node = get_same_connected_node(graph, node_u, node_v)
+    redirect_ancestor_edges_to(graph, node_v, common_node)
+    collapse_nodes(graph, node_u, node_v, collapse_edge=True)
+    graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
+    return node_u
+
+
+def rule_11f(graph, node_u, node_v):
+    collapsed_u = graph.get_node_attribute(node_u, graph.COLLAPSED)
+    if collapsed_u:
+        collapse_nodes(graph, node_u, node_v)
+        graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
+        return node_u
+    else:
+        collapse_nodes(graph, node_v, node_u)
+        graph.set_node_attribute(node_v, graph.HYPOTHESIS, True)
+        return node_v
+
+
+def rule_11g(graph, node_u, node_v):
+    prepare_collapse(graph, node_v, color=-1)
+    collapse_nodes(graph, node_u, node_v, collapse_edge=True)
+    return node_u
+
+
 def rule_12(graph, node_u, node_v):
     prepare_collapse(graph, node_u, color=1)
-    collapse_nodes(graph, node_u, node_v, ancestor_edges=True)
+    out_neighbor_v, = graph.get_out_neighbors(node_v)
+    redirect_ancestor_edges_to(graph, node_v, out_neighbor_v)
+    collapse_nodes(graph, node_u, node_v)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
 
 def rule_13(graph, node_u, node_v):
     prepare_collapse(graph, node_v, color=1)
+    out_neighbor_u, = graph.get_out_neighbors(node_u)
+    redirect_ancestor_edges_to(graph, node_u, out_neighbor_u)
     collapse_nodes(graph, node_u, node_v)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
 
 def rule_14(graph, node_u, node_v):
-    collapse_nodes(graph, node_u, node_v, ancestor_edges=True)
+    out_neighbor_u, = graph.get_out_neighbors(node_u)
+    out_neighbor_v, = graph.get_out_neighbors(node_v)
+    redirect_ancestor_edges_to(graph, node_u, out_neighbor_u)
+    redirect_ancestor_edges_to(graph, node_v, out_neighbor_v)
+    collapse_nodes(graph, node_u, node_v)
     graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
     return node_u
 
@@ -277,13 +434,15 @@ def rule_15(graph, node_u, node_v):
 
 def rule_16(graph, node_u, node_v):
     if graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET):
-        collapse_nodes(graph, node_v, node_u, collapse_edge=True,
-                       ancestor_edges=True)
+        out_neighbor_u, = graph.get_out_neighbors(node_u)
+        redirect_ancestor_edges_to(graph, node_u, out_neighbor_u)
+        collapse_nodes(graph, node_v, node_u, collapse_edge=True)
         graph.set_node_attribute(node_v, graph.HYPOTHESIS, True)
         return node_v
     else:
-        collapse_nodes(graph, node_u, node_v, collapse_edge=True,
-                       ancestor_edges=True)
+        out_neighbor_v, = graph.get_out_neighbors(node_v)
+        redirect_ancestor_edges_to(graph, node_v, out_neighbor_v)
+        collapse_nodes(graph, node_u, node_v, collapse_edge=True)
         graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
         return node_u
 
@@ -303,11 +462,15 @@ def rule_17(graph, node_u, node_v):
 
 def rule_18(graph, node_u, node_v):
     if graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET):
-        collapse_nodes(graph, node_v, node_u, ancestor_edges=True)
+        out_neighbor_u, = graph.get_out_neighbors(node_u)
+        redirect_ancestor_edges_to(graph, node_u, out_neighbor_u)
+        collapse_nodes(graph, node_v, node_u)
         graph.set_node_attribute(node_v, graph.HYPOTHESIS, True)
         return node_v
     else:
-        collapse_nodes(graph, node_u, node_v, ancestor_edges=True)
+        out_neighbor_v, = graph.get_out_neighbors(node_v)
+        redirect_ancestor_edges_to(graph, node_v, out_neighbor_v)
+        collapse_nodes(graph, node_u, node_v)
         graph.set_node_attribute(node_u, graph.HYPOTHESIS, True)
         return node_u
 
@@ -343,8 +506,23 @@ def prepare_collapse(graph, node, color=None):
         graph.set_edge_attribute(node, out_neighbor, graph.COLOR, color)
 
 
-def collapse_nodes(graph, node_u, node_v, collapse_edge=None,
-                   ancestor_edges=None):
+def get_same_connected_node(graph, node_u, node_v):
+    for out_neighbor_u in graph.get_deductive_out_neighbors(node_u):
+        for out_neighbor_v in graph.get_deductive_out_neighbors(node_v):
+            if out_neighbor_u == out_neighbor_v:
+                return out_neighbor_u
+    return None
+
+
+def common_out_neighbor(graph, node_u, node_v):
+    for out_neighbor_u in graph.get_deductive_out_neighbors(node_u):
+        for out_neighbor_v in graph.get_deductive_out_neighbors(node_v):
+            if out_neighbor_u == out_neighbor_v:
+                return True
+    return False
+
+
+def collapse_nodes(graph, node_u, node_v, collapse_edge=None):
     """
     Collapses node_u and node_v.
 
@@ -361,9 +539,6 @@ def collapse_nodes(graph, node_u, node_v, collapse_edge=None,
 
     collapse_edge: boolean
         If True, collapse edges
-
-    ancestor_edges: boolean
-        If True, redirect ancestor edges
     """
     if collapse_edge:
         for (source_u, target_u) in graph.get_out_edges(node_u):
@@ -371,12 +546,23 @@ def collapse_nodes(graph, node_u, node_v, collapse_edge=None,
                 if target_u == target_v:
                     graph.collapse_edges(node_u, node_v, target_u)
 
-    if ancestor_edges:
-        graph.redirect_in_edges(node_v, node_u, ancestor_edges=True)
-    else:
-        graph.redirect_in_edges(node_v, node_u)
+    graph.redirect_in_edges(node_v, node_u)
     graph.redirect_out_edges(node_v, node_u)
     graph.remove_node(node_v)
+
+
+def redirect_ancestor_edges_to(graph, node, target):
+    in_edges = graph.get_in_edges(node)
+    old_ancestor_edges = []
+    for (s, t) in in_edges:
+        is_ancestor = graph.get_edge_attribute(s, t, "ancestor")
+
+        if is_ancestor:
+            old_ancestor_edges.append((s, t))
+            path = graph.get_edge_attribute(s, t, "path")
+            graph.add_ancestor_edge(s, target, path=path)
+    graph.set_node_attribute(node, "ancestor_target", False)
+    graph.remove_edges(old_ancestor_edges)
 
 
 def redirect_ancestor_edges(graph, node, color):

@@ -1,20 +1,30 @@
 #!/usr/local/bin/python
 # coding: utf-8
 
-from networkx import DiGraph
+import networkx as nx
+import re
 
 
-def convert_input(graph):
+def convert_input(file_path):
     """
     Converts input graph
     """
-    converted_graph = DiGraph()
+    graph = nx.nx_agraph.read_dot(file_path)
+    converted_graph = nx.DiGraph()
 
-    for node in graph.get_nodes():
-        pass
+    for node in graph.nodes:
+        raw_formula(node)
 
     return converted_graph
 
 
 def raw_formula(formula):
-    pass
+
+    if re.match(r'^.*[0-9]+$', formula):
+        st = formula.split("  ")
+        print formula
+        print st
+        print "\n"
+    else:
+        print formula
+        print "\n"

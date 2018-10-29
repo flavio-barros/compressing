@@ -6,7 +6,10 @@ import re
 from BitVector import BitVector
 
 from util import constants
-from graph_adapter import GraphAdapter, NodeGraphError, NodeAttributeGraphError
+from graph_adapter import GraphAdapter, NodeGraphError, NodeAttributeGraphError, \
+                          EdgeAttributeGraphError
+
+IMPLICATION = "imp"
 
 
 class ProofGraph:
@@ -63,8 +66,10 @@ class ProofGraph:
     HYPOTHESIS = constants.HYPOTHESIS
     DEPENDENCIES = constants.DEPENDENCIES
     COLLAPSED = constants.COLLAPSED
+    LEVEL = constants.LEVEL
 
-    NODE_ATTRIBUTES = [LABEL, FORMULA, ANCESTOR_TARGET, HYPOTHESIS, DISCHARGE]
+    NODE_ATTRIBUTES = [LABEL, FORMULA, ANCESTOR_TARGET, HYPOTHESIS, DISCHARGE,
+                       COLLAPSED, LEVEL]
     EDGE_ATTRIBUTES = [COLOR, ANCESTOR, PATH, DEPENDENCIES, COLLAPSED]
 
     def __init__(self, file_path=None, init_data=False):
@@ -97,6 +102,11 @@ class ProofGraph:
             self.graph = graph
             if init_data:
                 self.init_proof_graph_data()
+        else:
+            self.graph = GraphAdapter()
+
+    def save_dot(self, file_path):
+        self.graph.save_dot(file_path)
 
     def set_root(self):
         """
@@ -133,11 +143,10 @@ class ProofGraph:
     def init_proof_graph_data(self):
         self.set_root()
         self.__init_nodes_attributes()
-        self.__set_formulas_indexes()
-        self.__init_edges_attributes()
+        self.__set_formulas_index()
         self.__identify_discharged_ocurrences()
+        self.__init_edges_attributes()
         self.__set_edges_dependencies(self.root)
-        self.__set_nodes_level(self.root)
 
     # Not tested
     def __init_edges_attributes(self):
@@ -150,6 +159,14 @@ class ProofGraph:
         The bit vector of each edge has size equal to the number of
         sub-formulas in the proof.
         """
+        for (u, v) in self.graph.get_edges():
+            try:
+                color = self.graph.get_edge_attribute(u, v, ProofGraph.COLOR)
+            except EdgeAttributeGraphError:
+                color = None
+            if color:
+                self.graph.remove_edge(u, v)
+
         qty_formulas = len(self.formulas_index)
         for (u, v) in self.graph.get_edges():
             self.graph.set_edge_attribute(u, v, ProofGraph.COLOR, 0)
@@ -170,33 +187,34 @@ class ProofGraph:
             self.graph.set_node_attribute(node, ProofGraph.ANCESTOR_TARGET,
                                           False)
             self.graph.set_node_attribute(node, ProofGraph.HYPOTHESIS, False)
-            formula = self.__raw_formula(node)
+            self.graph.set_node_attribute(node, ProofGraph.COLLAPSED, False)
+            label = self.graph.get_node_attribute(node, ProofGraph.LABEL)
+            formula = self.__raw_formula(label)
             self.graph.set_node_attribute(node, ProofGraph.FORMULA, formula)
 
     # Not tested
-    def __raw_formula(self, node):
+    def __raw_formula(self, label):
         """
         Extracts only the corresponding formula from previous label
         node.
 
         Parameters
         ----------
-        node: node
-            Node in the graph
+        label: string
         """
-        node_label = self.graph.get_node_attribute(node, ProofGraph.LABEL)
+        formula = label
+        if re.match(r'^\[(.*)\][0-9]+', label):
+            match = re.search(r'^\[(.*)\][0-9]+[a-z]*$', label)
+            formula = match.group(1)
+        elif re.match(r'^(\(.*\)).[0-9]+', label):
+            match = re.search(r'^(\(.*\)).[0-9]+[a-z]*$', label)
+            formula = match.group(1)
 
-        if re.match(r'^\[(.*)\][0-9]+', node_label):
-            match = re.search(r'^\[(.*)\][0-9]+[a-z]*$', node_label)
-            return match.group(1)
-        elif re.match(r'^(\(.*\)).[0-9]+', node_label):
-            match = re.search(r'^(\(.*\)).[0-9]+[a-z]*$', node_label)
-            return match.group(1)
-        else:
-            return node_label
+        formula = formula.replace(" ", "")
+        return formula
 
     # Not tested
-    def __set_formulas_indexes(self):
+    def __set_formulas_index(self):
         """
         Stores each sub-formula in a dictionary-like object.
 
@@ -244,15 +262,17 @@ class ProofGraph:
             dependencies[index] = 1
         elif in_degree == 1:
             in_neighbor, = self.graph.get_in_neighbors(node)
+
             self.__set_edges_dependencies(in_neighbor)
-            discharged_formula = self.graph.get_node_attribute(
-                node, ProofGraph.DISCHARGE)
-            index = self.formulas_index[discharged_formula]
-            out_neighbor, = self.graph.get_out_neighbors(node)
-            dependencies = self.graph.get_edge_attribute(node,
-                                                         out_neighbor,
-                                                         ProofGraph.DEPENDENCIES)
-            dependencies[index] = 0
+            if self.graph.get_out_degree(node) > 0:
+                discharged_formula = \
+                    self.graph.get_node_attribute(node, ProofGraph.DISCHARGE)
+                index = self.formulas_index[discharged_formula]
+                out_neighbor, = self.graph.get_out_neighbors(node)
+                dependencies = \
+                    self.graph.get_edge_attribute(node, out_neighbor,
+                                                  ProofGraph.DEPENDENCIES)
+                dependencies[index] = 0
         elif in_degree == 2:
             in_neighbor_1, in_neighbor_2 = self.graph.get_in_neighbors(node)
             self.__set_edges_dependencies(in_neighbor_1)
@@ -275,47 +295,70 @@ class ProofGraph:
         """
         discharged_occurrences = dict()
         conclusions = dict()
-        for node in self.graph.get_nodes():
-            label = self.graph.get_node_attribute(node, ProofGraph.LABEL)
-            formula = self.graph.get_node_attribute(node, ProofGraph.FORMULA)
-            if re.match(r'\[.+\][0-9]+', label):
-                match = re.search(r'\[.+\]([0-9][0-9a-z]*)', label)
-                if not discharged_occurrences.has_key(match.group(1)):
-                    discharged_occurrences[match.group(1)] = formula
-            if re.match(r'.+[\s]([0-9][0-9a-z]*)', label):
-                match = re.match(r'.+[\s]([0-9][0-9a-z]*)', label)
-                if not conclusions.has_key(match.group(1)):
-                    conclusions[match.group(1)] = node
+        # for node in self.graph.get_nodes():
+        #     label = self.graph.get_node_attribute(node, ProofGraph.LABEL)
+        #     formula = self.graph.get_node_attribute(node, ProofGraph.FORMULA)
+        #     if re.match(r'\[.+\][0-9]+', label):
+        #         match = re.search(r'\[.+\]([0-9][0-9a-z]*)', label)
+        #         if not discharged_occurrences.has_key(match.group(1)):
+        #             discharged_occurrences[match.group(1)] = formula
+        #     if re.match(r'.+[\s]([0-9][0-9a-z]*)', label):
+        #         match = re.match(r'.+[\s]([0-9][0-9a-z]*)', label)
+        #         if not conclusions.has_key(match.group(1)):
+        #             conclusions[match.group(1)] = node
+        #         else:
+        #             pass
+        #             # raise exception here
+        # for key, node in conclusions.items():
+        #     discharged_occurrence = discharged_occurrences[key]
+        #     self.graph.set_node_attribute(node, ProofGraph.DISCHARGE,
+        #                                   discharged_occurrence)
+        for (source, target) in self.graph.get_edges():
+            try:
+                color = \
+                    self.graph.get_edge_attribute(source, target,
+                                                  ProofGraph.COLOR)
+            except EdgeAttributeGraphError:
+                color = None
+            if color:
+                if target not in discharged_occurrences:
+                    discharged_occurrences[target] = [source]
                 else:
-                    pass
-                    # raise exception here
-        for key, node in conclusions.items():
-            discharged_occurrence = discharged_occurrences[key]
-            self.graph.set_node_attribute(node, ProofGraph.DISCHARGE,
-                                          discharged_occurrence)
+                    discharged_occurrences[target].append(source)
+
+        for node, discharges in discharged_occurrences.items():
+            discharge_node = discharges[0]
+            formula = self.graph.get_node_attribute(discharge_node,
+                                                    ProofGraph.FORMULA)
+            self.graph.set_node_attribute(node, ProofGraph.DISCHARGE, formula)
 
     # Not tested
-    def __set_nodes_level(self, root):
+    def get_nodes_level(self):
         """
         Build a dictionary-like object that groups the nodes according
         to the derivation level.
-
-        Parameters
-        ----------
-        root: node
-            Node in the graph. Derivation root.
         """
+        root = self.root
         level = 0
         nodes_level = {level: [root]}
         while nodes_level[level]:
             nodes_level[level + 1] = []
             for node in nodes_level[level]:
-                in_neighbors = list(self.graph.get_in_neighbors(node))
+                in_neighbors = list(self.get_deductive_in_neighbors(node))
                 for in_neighbor in in_neighbors:
                     if in_neighbor not in nodes_level[level + 1]:
                         nodes_level[level + 1].append(in_neighbor)
             level += 1
-        self.nodes_level = nodes_level
+
+        # Remove empty list from highest level
+        if not nodes_level[level]:
+            nodes_level.pop(level)
+
+        # Set level attribute to nodes
+        for level, nodes in nodes_level.items():
+            for node in nodes:
+                self.graph.set_node_attribute(node, self.LEVEL, level)
+        return nodes_level
 
     def set_node_attribute(self, node, attribute, value):
         """
@@ -725,7 +768,7 @@ class ProofGraph:
             message = "not exists in proof graph"
             raise NodeProofGraphError(node, message)
 
-    def redirect_in_edges(self, node_u, node_v, **kwargs):
+    def redirect_in_edges(self, node_u, node_v):
         """
         Redirect edges that pointing to the node_u to node_v.
 
@@ -737,11 +780,6 @@ class ProofGraph:
         node_u, node_v: node
             Nodes in the graph
 
-        kwargs: keywords arguments, optional
-            Only one argument is considered, 'ancestor_edges'.
-            If 'ancestor_edges' is given, ancestor edges are considered
-            in redirecting.
-
         Raises
         ------
         NodeProofGraphError
@@ -749,11 +787,7 @@ class ProofGraph:
         """
         if self.graph.has_node(node_u):
             if self.graph.has_node(node_v):
-                ancestor_edges = kwargs.get("ancestor_edges", None)
-                if ancestor_edges:
-                    in_edges_u = self.graph.get_in_edges(node_u)
-                else:
-                    in_edges_u = self.get_deductive_in_edges(node_u)
+                in_edges_u = self.get_deductive_in_edges(node_u)
                 for (source, target) in in_edges_u:
                     attributes = self.get_all_edge_attributes(source, target)
                     self.graph.add_edge(source, node_v, **attributes)
@@ -1058,6 +1092,77 @@ class ProofGraph:
             A Agraph instance
         """
         return self.graph.to_agraph()
+
+    def get_nodes(self):
+        return self.graph.get_nodes()
+
+    def get_in_degree(self, node):
+        return self.graph.get_in_degree(node)
+
+    def get_edges(self):
+        return self.graph.get_edges()
+
+    def get_out_neighbors(self, node):
+        return self.graph.get_out_neighbors(node)
+
+    def add_node(self, node):
+        self.graph.add_node(node)
+
+    def add_edge(self, source, target):
+        self.graph.add_edge(source, target)
+
+    def has_node(self, node):
+        return self.graph.has_node(node)
+
+    def has_edge(self, source, target):
+        return self.graph.has_edge(source, target)
+
+    def get_deductive_paths(self, node1, node2):
+        level_n1 = self.get_node_attribute(node1, self.LEVEL)
+        level_n2 = self.get_node_attribute(node2, self.LEVEL)
+
+        paths = {node1: [[node1]]}
+        successors = {node1: self.get_deductive_out_neighbors(node1)}
+        aux_level = level_n1-1
+        while aux_level >= level_n2:
+            deleted_keys = []
+            next_level = []
+            for node, successors_node in successors.items():
+                next_level += successors_node
+                for n in successors_node:
+                    for p in paths[node]:
+                        if n not in paths:
+                            paths[n] = [p+[n]]
+                        else:
+                            paths[n].append(p+[n])
+                del paths[node]
+                deleted_keys.append(node)
+            next_level = list(set(next_level))
+            for node in next_level:
+                successors[node] = self.get_deductive_out_neighbors(node)
+            for node in deleted_keys:
+                del successors[node]
+            aux_level -= 1
+
+        paths = self.__get_paths(paths)
+        deductive_paths = []
+        for path in paths:
+            if node2 in path:
+                deductive_paths.append(path)
+        return paths
+
+    @staticmethod
+    def __get_paths(dict_paths):
+        paths = []
+        for key, value in dict_paths.items():
+            paths += value
+        return paths
+
+
+
+
+
+
 
 
 class ProofGraphError(Exception):

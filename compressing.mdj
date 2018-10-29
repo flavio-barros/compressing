@@ -4645,7 +4645,7 @@
 											"top": 1050,
 											"width": 206.8193359375,
 											"height": 13,
-											"text": "-draw(name: string)",
+											"text": "-__draw(name: string)",
 											"horizontalAlignment": 0
 										},
 										{
@@ -12937,7 +12937,7 @@
 							"_parent": {
 								"$ref": "AAAAAAFj9LyNDU7WMwg="
 							},
-							"name": "draw",
+							"name": "__draw",
 							"visibility": "private",
 							"parameters": [
 								{

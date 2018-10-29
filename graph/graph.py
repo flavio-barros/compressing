@@ -22,6 +22,9 @@ class Graph:
     def load_dot(self, file_path): pass
 
     @abstractmethod
+    def save_dot(self, file_path): pass
+
+    @abstractmethod
     def to_agraph(self): pass
 
     @abstractmethod
@@ -83,3 +86,9 @@ class Graph:
 
     @abstractmethod
     def remove_edges(self, edges): pass
+
+    @abstractmethod
+    def has_edge(self, source, target): pass
+
+    @abstractmethod
+    def get_all_shortest_paths(self, source, target): pass
