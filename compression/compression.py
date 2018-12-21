@@ -510,10 +510,6 @@ def prepare_collapse(graph, node, color=None):
         graph.set_edge_attribute(node, out_neighbor, graph.COLOR, color)
 
 
-def add_lambda_data(graph, node):
-    ancestor_target = graph.get_node_attribute(node, graph.ANCESTOR_TARGET)
-
-
 def get_same_connected_node(graph, node_u, node_v):
     for out_neighbor_u in graph.get_deductive_out_neighbors(node_u):
         for out_neighbor_v in graph.get_deductive_out_neighbors(node_v):

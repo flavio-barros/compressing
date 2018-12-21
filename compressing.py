@@ -7,7 +7,6 @@ from compression import compression
 from graph import proof_graph as pgr
 from visualize import visual_proof_graph as vpg
 from util import convert
-from verification import verification
 
 
 def main():
@@ -16,21 +15,21 @@ def main():
 
     # file argument
     parser.add_argument("file", type=file,
-                        help="read proof graph from file")
+                        help="read proof_graph from file")
 
     # visualize argument
     parser.add_argument("--visualize", dest='visualize', action='store_true',
-                        help="generates pdf visualization")
+                        help="generate PDF view")
     parser.add_argument("--no-visualize", dest='visualize',
                         action='store_false',
-                        help="not generates pdf visualization")
+                        help="not generate PDF view")
     parser.set_defaults(visualize=True)
 
     parser.add_argument("--convert", dest='convert', action='store_true',
-                        help="converts input graph")
+                        help="convert input graph")
     parser.add_argument("--no-convert", dest='convert',
                         action='store_false',
-                        help="not converts input graph")
+                        help="not convert input graph")
     parser.set_defaults(visualize=False)
 
     args = parser.parse_args()
@@ -45,9 +44,6 @@ def main():
 
     if args.visualize:
         visual_pg.draw_input()
-
-    print "Vertices: ", len(proof_graph.get_nodes())
-    print "Edges: ", len(proof_graph.get_edges())
 
     print "Compressing (start)"
 
@@ -81,12 +77,8 @@ def main():
 
     if args.visualize:
         print "Generating PDF files (start)"
-        # visual_pg.draw_final()
+        visual_pg.draw_final()
         print "Generating PDF files (done)"
-
-    print "verifying (start)"
-    # verification.verifying(proof_graph)
-    print "verifying (done)"
 
     print "Vertices: ", len(proof_graph.get_nodes())
     print "Edges: ", len(proof_graph.get_edges())
