@@ -67,12 +67,16 @@ class ProofGraph:
     DEPENDENCIES = constants.DEPENDENCIES
     COLLAPSED = constants.COLLAPSED
     LEVEL = constants.LEVEL
+    LAMBDA_COLORS = constants.LAMBDA_COLORS
+    MULTI_A_TARGET = constants.MULTI_A_TARGET
+    ACTIVE_COLORS = constants.ACTIVE_COLORS
 
     NODE_ATTRIBUTES = [LABEL, FORMULA, ANCESTOR_TARGET, HYPOTHESIS, DISCHARGE,
-                       COLLAPSED, LEVEL]
-    EDGE_ATTRIBUTES = [COLOR, ANCESTOR, PATH, DEPENDENCIES, COLLAPSED]
+                       COLLAPSED, LEVEL, MULTI_A_TARGET, ACTIVE_COLORS]
+    EDGE_ATTRIBUTES = [COLOR, ANCESTOR, PATH, DEPENDENCIES, COLLAPSED,
+                       LAMBDA_COLORS]
 
-    def __init__(self, file_path=None, init_data=False):
+    def __init__(self, digraph=None, file_path=None, init_data=False):
         """
         Initializes an instance with the creation of the graph from a
         dot file.
@@ -100,10 +104,15 @@ class ProofGraph:
             graph = GraphAdapter()
             graph.load_dot(file_path)
             self.graph = graph
-            if init_data:
-                self.init_proof_graph_data()
+        elif digraph:
+            graph_adapter = GraphAdapter()
+            graph_adapter.set_graph(digraph)
+            self.graph = graph_adapter
         else:
             self.graph = GraphAdapter()
+
+        if init_data:
+            self.init_proof_graph_data()
 
     def save_dot(self, file_path):
         self.graph.save_dot(file_path)
@@ -172,6 +181,7 @@ class ProofGraph:
             self.graph.set_edge_attribute(u, v, ProofGraph.COLOR, 0)
             self.graph.set_edge_attribute(u, v, ProofGraph.ANCESTOR, False)
             self.graph.set_edge_attribute(u, v, ProofGraph.COLLAPSED, False)
+            self.graph.set_edge_attribute(u, v, ProofGraph.LAMBDA_COLORS, [])
             vector = BitVector(size=qty_formulas)
             self.graph.set_edge_attribute(u, v, ProofGraph.DEPENDENCIES, vector)
 
@@ -188,12 +198,15 @@ class ProofGraph:
                                           False)
             self.graph.set_node_attribute(node, ProofGraph.HYPOTHESIS, False)
             self.graph.set_node_attribute(node, ProofGraph.COLLAPSED, False)
+            self.graph.set_node_attribute(node, ProofGraph.MULTI_A_TARGET, {})
+            self.graph.set_node_attribute(node, ProofGraph.ACTIVE_COLORS, [])
             label = self.graph.get_node_attribute(node, ProofGraph.LABEL)
             formula = self.__raw_formula(label)
             self.graph.set_node_attribute(node, ProofGraph.FORMULA, formula)
 
     # Not tested
-    def __raw_formula(self, label):
+    @staticmethod
+    def __raw_formula(label):
         """
         Extracts only the corresponding formula from previous label
         node.
@@ -203,11 +216,11 @@ class ProofGraph:
         label: string
         """
         formula = label
-        if re.match(r'^\[(.*)\][0-9]+', label):
-            match = re.search(r'^\[(.*)\][0-9]+[a-z]*$', label)
+        if re.match(r"^\[(.*)\][0-9]+", label):
+            match = re.search(r"^\[(.*)\][0-9]+[a-z]*$", label)
             formula = match.group(1)
-        elif re.match(r'^(\(.*\)).[0-9]+', label):
-            match = re.search(r'^(\(.*\)).[0-9]+[a-z]*$', label)
+        elif re.match(r"^(\(.*\)).[0-9]+", label):
+            match = re.search(r"^(\(.*\)).[0-9]+[a-z]*$", label)
             formula = match.group(1)
 
         formula = formula.replace(" ", "")
@@ -294,25 +307,6 @@ class ProofGraph:
         'implication introduction' rules.
         """
         discharged_occurrences = dict()
-        conclusions = dict()
-        # for node in self.graph.get_nodes():
-        #     label = self.graph.get_node_attribute(node, ProofGraph.LABEL)
-        #     formula = self.graph.get_node_attribute(node, ProofGraph.FORMULA)
-        #     if re.match(r'\[.+\][0-9]+', label):
-        #         match = re.search(r'\[.+\]([0-9][0-9a-z]*)', label)
-        #         if not discharged_occurrences.has_key(match.group(1)):
-        #             discharged_occurrences[match.group(1)] = formula
-        #     if re.match(r'.+[\s]([0-9][0-9a-z]*)', label):
-        #         match = re.match(r'.+[\s]([0-9][0-9a-z]*)', label)
-        #         if not conclusions.has_key(match.group(1)):
-        #             conclusions[match.group(1)] = node
-        #         else:
-        #             pass
-        #             # raise exception here
-        # for key, node in conclusions.items():
-        #     discharged_occurrence = discharged_occurrences[key]
-        #     self.graph.set_node_attribute(node, ProofGraph.DISCHARGE,
-        #                                   discharged_occurrence)
         for (source, target) in self.graph.get_edges():
             try:
                 color = \
@@ -862,13 +856,13 @@ class ProofGraph:
             Nodes in the graph
 
         kwargs: keywords arguments, optional
-            Two arguments are considered, 'path' and 'new_color'.
-            If 'path' and 'new_color' are given, the ancestor edge is
-            added with 'new_color' at the beginning of 'path'.
-            If 'path' is given, the ancestor edge is added with this
-            path as attribute.
-            If 'new_color' is given, the ancestor edge is added with
-            the path containing only 'new_color'.
+            Three arguments are considered, 'path', 'new_color' and
+            'change_color'.
+            'path' replaces the old path.
+            'new_color' is attached at the beginning of the path
+            'change_color' has the form ('index', 'color') and changes the path
+            with 'color' in 'index'
+            Precedence order: 1-'path'; 2-'new_color'; 3-'change_color'.
 
         Raises
         ------
@@ -880,25 +874,53 @@ class ProofGraph:
         """
         if self.graph.has_node(source):
             if self.graph.has_node(target):
+
                 path = kwargs.get("path", None)
                 new_color = kwargs.get("new_color", None)
-                if path and new_color:
-                    new_path = list(path)
-                    new_path.insert(0, new_color)
-                    self.graph.add_edge(source, target, ancestor=True,
-                                        path=new_path)
-                elif new_color:
-                    new_path = list()
-                    new_path.append(new_color)
-                    self.graph.add_edge(source, target, ancestor=True,
-                                        path=new_path)
-                elif path:
-                    self.graph.add_edge(source, target, ancestor=True,
-                                        path=path)
-                else:
-                    method = self.add_ancestor_edge.__name__
-                    message = "is wrong"
-                    raise WrongSettingGraphError(method, message)
+                change_color = kwargs.get("change_color", None)
+                index = None
+                color = None
+
+                if change_color:
+                    index, color = change_color
+
+                if path or new_color or change_color:
+                    if path:
+                        new_path = path
+                    else:
+                        new_path = self.get_edge_attribute(source, target,
+                                                           ProofGraph.PATH)
+
+                    if new_color is not None:
+                        new_path.insert(0, new_color)
+
+                    if change_color:
+                        new_path[index] = color
+
+                    multi_edges = self.get_node_attribute(
+                        target, ProofGraph.MULTI_A_TARGET)
+
+                    if source in multi_edges:
+                        if new_path not in multi_edges[source]:
+                            multi_edges[source].append(new_path)
+                        self.set_node_attribute(
+                            target, ProofGraph.MULTI_A_TARGET, multi_edges)
+                    else:
+                        if self.graph.has_edge(source, target):
+                            old_path = self.get_edge_attribute(
+                                source, target, ProofGraph.PATH)
+                            if new_path != old_path:
+                                multi_edges[source] = [new_path]
+                                multi_edges[source].append(old_path)
+
+                                self.set_node_attribute(
+                                    target, ProofGraph.MULTI_A_TARGET,
+                                    multi_edges)
+
+                                self.remove_edge(source, target)
+                        else:
+                            self.graph.add_edge(source, target, ancestor=True,
+                                                path=new_path)
             else:
                 message = "not exists in proof graph"
                 raise NodeProofGraphError(target, message)
@@ -906,7 +928,7 @@ class ProofGraph:
             message = "not exists in proof graph"
             raise NodeProofGraphError(source, message)
 
-    def collapse_edges(self, node_u, node_v, target):
+    def collapse_edges(self, node_u, node_v, target, colors):
         """
         Add a deductive collapsed edge between node_u and target.
 
@@ -921,6 +943,9 @@ class ProofGraph:
         node_u, node_v, target: node
             Nodes in the graph
 
+        colors: list
+            Colors to lambda_colors
+
         Raises
         ------
         NodeProofGraphError
@@ -929,7 +954,6 @@ class ProofGraph:
         EdgeProofGraphError
             The edge (node_u, target) not exists in the graph.
             The edge (node_v, target) not exists in the graph.
-
         """
         if not self.graph.has_node(node_u):
             message = "not exists in proof graph"
@@ -953,7 +977,8 @@ class ProofGraph:
 
         self.graph.remove_edge(node_u, target)
         self.graph.remove_edge(node_v, target)
-        attributes = {ProofGraph.COLLAPSED: True, ProofGraph.ANCESTOR: False}
+        attributes = {ProofGraph.COLLAPSED: True, ProofGraph.ANCESTOR: False,
+                      ProofGraph.LAMBDA_COLORS: colors}
         self.graph.add_edge(node_u, target, **attributes)
 
     def set_edge_attribute(self, source, target, attribute, value):
@@ -1158,11 +1183,11 @@ class ProofGraph:
             paths += value
         return paths
 
-
-
-
-
-
+    def add_active_color(self, node, color):
+        active_colors = self.get_node_attribute(node, self.ACTIVE_COLORS)
+        colors = set(active_colors)
+        colors.add(color)
+        self.set_node_attribute(node, self.ACTIVE_COLORS, list(colors))
 
 
 class ProofGraphError(Exception):

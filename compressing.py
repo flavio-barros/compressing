@@ -35,17 +35,19 @@ def main():
 
     args = parser.parse_args()
 
-    proof_graph = None
-
     if args.convert:
-        proof_graph = convert.convert_input(args.file)
-
-    proof_graph = pgr.ProofGraph(file_path=args.file, init_data=True)
+        proof_graph = pgr.ProofGraph(convert.convert_input(args.file),
+                                     init_data=True)
+    else:
+        proof_graph = pgr.ProofGraph(file_path=args.file, init_data=True)
 
     visual_pg = vpg.VisualProofGraph(proof_graph)
 
     if args.visualize:
         visual_pg.draw_input()
+
+    print "Vertices: ", len(proof_graph.get_nodes())
+    print "Edges: ", len(proof_graph.get_edges())
 
     print "Compressing (start)"
 
@@ -55,31 +57,39 @@ def main():
         for nodes in repeated_nodes:
             node_u = nodes.pop()
             for node_v in nodes:
-                # print "Collapse: ", collapse
-                rule_function = compression.identify_rule(proof_graph, node_u,
-                                                          node_v)
+                rule_function = \
+                    compression.identify_rule(proof_graph, node_u, node_v)
                 rule_name = rule_function.__name__
-                # print "Rule:", rule_name
+                print "Collapse:", collapse, "(rule: ", rule_name, ")"
                 graph_name = "collapse " + str(collapse) + "-" + rule_name
-                p1, p2, a_edges = visual_pg.draw_collapse(graph_name+"-Antes",
-                                                 [node_u, node_v], before=True)
+                p1, p2, a_edges = \
+                    visual_pg.draw_collapse(graph_name+"-Antes",
+                                            [node_u, node_v], before=True)
                 node_u = compression.exec_rule(rule_function, proof_graph,
                                                node_u, node_v)
                 visual_pg.draw_collapse(graph_name+"-Depois", [node_u],
                                         after=True, premisses_1=p1,
                                         premisses_2=p2, a_edges=a_edges)
                 collapse += 1
+                print ""
+
+    compression.redirect_multi_ancestor_edges(proof_graph)
+    compression.demote_ancestor_edges(proof_graph)
+    compression.remove_unused_colors(proof_graph)
 
     print "Compressing (done)"
 
     if args.visualize:
         print "Generating PDF files (start)"
-        visual_pg.draw_final()
+        # visual_pg.draw_final()
         print "Generating PDF files (done)"
 
     print "verifying (start)"
     # verification.verifying(proof_graph)
     print "verifying (done)"
+
+    print "Vertices: ", len(proof_graph.get_nodes())
+    print "Edges: ", len(proof_graph.get_edges())
 
 
 if __name__ == '__main__':

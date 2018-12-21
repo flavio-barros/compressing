@@ -1,5 +1,6 @@
 #!/usr/local/bin/python
 # coding: utf-8
+from pyparsing import empty
 
 from util import constants
 
@@ -449,13 +450,16 @@ def rule_16(graph, node_u, node_v):
 
 def rule_17(graph, node_u, node_v):
     if graph.get_node_attribute(node_u, graph.ANCESTOR_TARGET):
-        max_color_v = maximal_color(graph, node_v)
-        prepare_collapse(graph, node_u, color=max_color_v + 1)
+        next_color_v = maximal_color(graph, node_v) + 1
+        prepare_collapse(graph, node_u, color=next_color_v)
+        update_lambda_color(graph, node_v, next_color_v)
         collapse_nodes(graph, node_v, node_u)
+
         return node_v
     else:
-        max_color_u = maximal_color(graph, node_u)
-        prepare_collapse(graph, node_v, color=max_color_u + 1)
+        next_color_u = maximal_color(graph, node_u) + 1
+        prepare_collapse(graph, node_v, color=next_color_u)
+        update_lambda_color(graph, node_u, next_color_u)
         collapse_nodes(graph, node_u, node_v)
         return node_u
 
@@ -506,6 +510,10 @@ def prepare_collapse(graph, node, color=None):
         graph.set_edge_attribute(node, out_neighbor, graph.COLOR, color)
 
 
+def add_lambda_data(graph, node):
+    ancestor_target = graph.get_node_attribute(node, graph.ANCESTOR_TARGET)
+
+
 def get_same_connected_node(graph, node_u, node_v):
     for out_neighbor_u in graph.get_deductive_out_neighbors(node_u):
         for out_neighbor_v in graph.get_deductive_out_neighbors(node_v):
@@ -541,10 +549,11 @@ def collapse_nodes(graph, node_u, node_v, collapse_edge=None):
         If True, collapse edges
     """
     if collapse_edge:
-        for (source_u, target_u) in graph.get_out_edges(node_u):
-            for (source_v, target_v) in graph.get_out_edges(node_v):
-                if target_u == target_v:
-                    graph.collapse_edges(node_u, node_v, target_u)
+        for (s_u, t_u) in graph.get_out_edges(node_u):
+            for (s_v, t_v) in graph.get_out_edges(node_v):
+                if t_u == t_v:
+                    colors = colors_consistency(graph, node_u, node_v, t_u)
+                    graph.collapse_edges(node_u, node_v, t_u, colors)
 
     graph.redirect_in_edges(node_v, node_u)
     graph.redirect_out_edges(node_v, node_u)
@@ -552,15 +561,12 @@ def collapse_nodes(graph, node_u, node_v, collapse_edge=None):
 
 
 def redirect_ancestor_edges_to(graph, node, target):
-    in_edges = graph.get_in_edges(node)
+    in_edges = graph.get_ancestor_in_edges(node)
     old_ancestor_edges = []
     for (s, t) in in_edges:
-        is_ancestor = graph.get_edge_attribute(s, t, "ancestor")
-
-        if is_ancestor:
-            old_ancestor_edges.append((s, t))
-            path = graph.get_edge_attribute(s, t, "path")
-            graph.add_ancestor_edge(s, target, path=path)
+        old_ancestor_edges.append((s, t))
+        path = graph.get_edge_attribute(s, t, "path")
+        graph.add_ancestor_edge(s, target, path=path[1:])
     graph.set_node_attribute(node, "ancestor_target", False)
     graph.remove_edges(old_ancestor_edges)
 
@@ -578,7 +584,6 @@ def redirect_ancestor_edges(graph, node, color):
 
     color: int
         If color is given, add it in edge path.
-
     """
     ancestor_edges = graph.get_ancestor_in_edges(node)
     deductive_edges = graph.get_deductive_in_edges(node)
@@ -589,10 +594,12 @@ def redirect_ancestor_edges(graph, node, color):
         for (deductive_source, deductive_target) in deductive_edges:
             if color:
                 graph.add_ancestor_edge(ancestor_source, deductive_source,
-                                        path=path, new_color=color)
+                                        path=list(path), new_color=0,
+                                        change_color=(1, color))
+                print "add new color at index 1", color
             else:
                 graph.add_ancestor_edge(ancestor_source, deductive_source,
-                                        path=path)
+                                        path=list(path), new_color=0)
             graph.set_node_attribute(deductive_source, graph.ANCESTOR_TARGET,
                                      True)
     graph.remove_edges(ancestor_edges)
@@ -616,8 +623,57 @@ def add_ancestor_edges(graph, node, color):
     """
     out_neighbor, = graph.get_deductive_out_neighbors(node)
     for in_neighbor in graph.get_deductive_in_neighbors(node):
-        graph.add_ancestor_edge(out_neighbor, in_neighbor, new_color=color)
+        graph.add_ancestor_edge(out_neighbor, in_neighbor, path=[0, color])
         graph.set_node_attribute(in_neighbor, graph.ANCESTOR_TARGET, True)
+
+
+def update_lambda_color(graph, node, max_color):
+    out_edges = graph.get_deductive_out_edges(node)
+    color = max_color + 1
+    for (s, t) in out_edges:
+        lambda_colors = graph.get_edge_attribute(s, t, graph.LAMBDA_COLORS)
+        if lambda_colors == [0]:
+            graph.set_edge_attribute(s, t, graph.LAMBDA_COLORS, [color])
+            update_path_ancestor_edge(graph, node, color, 1)
+            color += 1
+
+
+def update_path_ancestor_edge(graph, node, color, index):
+    for (s_in, t_in) in graph.get_deductive_in_edges(node):
+        ancestor_target = graph.get_node_attribute(s_in, graph.ANCESTOR_TARGET)
+        if ancestor_target:
+            (a_s, a_t), = graph.get_ancestor_in_edges(s_in)
+            old_path = graph.get_edge_attribute(a_s, a_t, graph.PATH)
+            graph.remove_edge(a_s, a_t)
+            graph.add_ancestor_edge(a_s, a_t, path=list(old_path),
+                                    change_color=(index, color))
+
+
+def colors_consistency(graph, node_u, node_v, target):
+    collapsed_u = graph.get_node_attribute(node_u, graph.COLLAPSED)
+    colors_u = get_node_colors(graph, node_u)
+    colors_v = get_node_colors(graph, node_v)
+    color_edge_u = get_edge_color(graph, node_u, target)
+    color_edge_v = get_edge_color(graph, node_v, target)
+
+    if set(color_edge_u) != set(color_edge_v):
+        if collapsed_u:
+            color_v, = colors_v
+            if color_v in colors_u and color_v not in color_edge_u:
+                color = maximal_color(graph, node_u) + 1
+                graph.set_edge_attribute(node_v, target, graph.COLOR, color)
+                update_path_ancestor_edge(graph, node_v, color, 1)
+        else:
+            color_u, = colors_u
+            if color_u in colors_v and color_u not in color_edge_v:
+                color = maximal_color(graph, node_v) + 1
+                graph.set_edge_attribute(node_u, target, graph.COLOR, color)
+                update_path_ancestor_edge(graph, node_u, color, 1)
+
+    color_u = get_edge_color(graph, node_u, target)
+    color_v = get_edge_color(graph, node_v, target)
+
+    return list(set(color_u + color_v))
 
 
 def is_connected_same_node(graph, node_u, node_v):
@@ -650,15 +706,171 @@ def maximal_color(graph, node):
     node: node
         Node in the graph
     """
-    max_color = 0
-    for (source, target) in graph.get_deductive_out_edges(node):
-        is_collapsed = graph.get_edge_attribute(source, target,
-                                                graph.COLLAPSED)
-        if not is_collapsed:
-            color = graph.get_edge_attribute(source, target, graph.COLOR)
-            if color > max_color:
-                max_color = color
-    return max_color
+    return max(get_node_colors(graph, node))
+
+
+def get_edge_color(graph, s, t):
+    is_collapsed = graph.get_edge_attribute(s, t, graph.COLLAPSED)
+    if is_collapsed:
+        color = graph.get_edge_attribute(s, t, graph.LAMBDA_COLORS)
+    else:
+        color = [graph.get_edge_attribute(s, t, graph.COLOR)]
+
+    return color
+
+
+def get_node_colors(graph, node):
+    colors = []
+    for (s, t) in graph.get_deductive_out_edges(node):
+        is_collapsed = graph.get_edge_attribute(s, t, graph.COLLAPSED)
+        if is_collapsed:
+            colors += graph.get_edge_attribute(s, t, graph.LAMBDA_COLORS)
+        else:
+            colors += [graph.get_edge_attribute(s, t, graph.COLOR)]
+
+    return colors
+
+
+def redirect_multi_ancestor_edges(graph):
+    nodes_level = graph.get_nodes_level()
+    max_level = max(nodes_level.keys())
+
+    for level in range(max_level, -1, -1):
+        for node in nodes_level[level]:
+            multi_edges = graph.get_node_attribute(node, graph.MULTI_A_TARGET)
+            if multi_edges:
+                paths_colors = get_paths_single_colors(multi_edges)
+                for source, path, index in paths_colors:
+                    demote_ancestor_edge(graph, source, node, path, index + 1)
+
+
+def get_paths_single_colors(multi_edges):
+    paths_single_colors = []
+    for source, paths in multi_edges.items():
+        paths2 = list(paths)
+        for index in range(0, len(paths[0])):
+            single_paths, paths2 = get_paths_single_color_node(paths2, index)
+            for path in single_paths:
+                paths_single_colors.append((source, path, index))
+
+    return paths_single_colors
+
+
+def get_paths_single_color_node(paths, index):
+    dict_color = {}
+    for path in paths:
+        index_color = path[index]
+        if index_color not in dict_color:
+            dict_color[index_color] = 1
+        else:
+            dict_color[index_color] += 1
+
+    single_colors = []
+
+    for color, qty in dict_color.items():
+        if qty == 1:
+            single_colors.append(color)
+
+    single_paths = []
+    copy_paths = list(paths)
+
+    for color in single_colors:
+        for path in list(paths):
+            if color == path[index]:
+                single_paths.append(path)
+                copy_paths.remove(path)
+
+    return single_paths, copy_paths
+
+
+def demote_ancestor_edge(graph, source, node, path, index):
+    new_path = path[index:]
+    removed_path = path[:index]
+
+    node_aux = node
+    for color in removed_path:
+        node_aux, = get_out_neighbors_color(graph, node_aux, color)
+
+    graph.add_ancestor_edge(source, node_aux, path=new_path)
+
+
+def get_out_neighbors_color(graph, node, color):
+    out_edges = graph.get_deductive_out_edges(node)
+
+    out_neighbors = []
+    for (s, t) in out_edges:
+        colors = get_edge_color(graph, s, t)
+        if color in colors:
+            out_neighbors.append(t)
+
+    return out_neighbors
+
+
+def remove_unused_colors(graph):
+    nodes_level = graph.get_nodes_level()
+    max_level = max(nodes_level.keys())
+
+    for level in range(max_level, -1, -1):
+        for node in nodes_level[level]:
+            check_active_colors(graph, node)
+            remove_colors_node(graph, node)
+
+
+def check_active_colors(graph, node):
+    ancestor_edges = graph.get_ancestor_in_edges(node)
+    for (s, t) in ancestor_edges:
+        path = graph.get_edge_attribute(s, t, graph.PATH)
+        mark_active_colors(graph, node, path)
+
+
+def mark_active_colors(graph, node, path):
+    aux_node = node
+    for color in path:
+        graph.add_active_color(aux_node, color)
+        aux_node, = get_out_neighbors_color(graph, aux_node, color)
+
+
+def remove_colors_node(graph, node):
+    out_edges = graph.get_deductive_out_edges(node)
+    for (s, t) in out_edges:
+        active_colors = graph.get_node_attribute(node, graph.ACTIVE_COLORS)
+        collapsed = graph.get_edge_attribute(s, t, graph.COLLAPSED)
+        if collapsed:
+            lambda_colors = graph.get_edge_attribute(s, t, graph.LAMBDA_COLORS)
+            removed_colors = []
+            for color in lambda_colors:
+                if color not in active_colors:
+                    removed_colors.append(color)
+            lambda_colors = list(set(lambda_colors) - set(removed_colors))
+            if not lambda_colors:
+                graph.set_edge_attribute(s, t, graph.LAMBDA_COLORS, [0])
+            else:
+                graph.set_edge_attribute(s, t, graph.LAMBDA_COLORS,
+                                         lambda_colors)
+        else:
+            color = graph.get_edge_attribute(s, t, graph.COLOR)
+            if color not in active_colors:
+                graph.set_edge_attribute(s, t, graph.COLOR, 0)
+
+
+def demote_ancestor_edges(graph):
+    nodes_level = graph.get_nodes_level()
+    max_level = max(nodes_level.keys())
+
+    for level in range(max_level, -1, -1):
+        for node in nodes_level[level]:
+            deductive_out_degree = graph.get_deductive_out_degree(node)
+            if deductive_out_degree == 1:
+                (s, t), = graph.get_deductive_out_edges(node)
+                collapsed = graph.get_edge_attribute(s, t, graph.COLLAPSED)
+                lambda_colors = graph.get_edge_attribute(s, t,
+                                                         graph.LAMBDA_COLORS)
+                if collapsed and lambda_colors == [0]:
+                    ancestor_edges = graph.get_ancestor_in_edges(node)
+                    for (a_s, a_t) in ancestor_edges:
+                        path = graph.get_edge_attribute(a_s, a_t, graph.PATH)
+                        demote_ancestor_edge(graph, a_s, node, path, 1)
+                        graph.remove_edge(a_s, a_t)
 
 
 seq_collapse = 0

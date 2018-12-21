@@ -10,6 +10,8 @@ FORMULA = "formula"
 ANCESTOR_TARGET = "ancestor_target"
 DISCHARGE = "discharge"
 LEVEL = "level"
+MULTI_A_TARGET = "multi_ancestor_target"
+ACTIVE_COLORS = "active_colors"
 
 # Edges attributes
 DEDUCTIVE_COLOR = "color"
@@ -18,7 +20,7 @@ PATH = "path"
 HYPOTHESIS = "hypothesis"
 DEPENDENCIES = "dependencies"
 COLLAPSED = "collapsed"
-LAMBDA_DATA = "lambda_data"
+LAMBDA_COLORS = "lambda_colors"
 
 """
 Constants for visualize/visual_graph_adapter (VisualGraphAdapter class)
@@ -45,7 +47,7 @@ DOT = "dot"
 FALSE = "False"
 TRUE = "True"
 
-LAMBDA = "<&#955;>"
+LAMBDA = "&#955;"
 
 INPUT = "input"
 FINAL = "final"

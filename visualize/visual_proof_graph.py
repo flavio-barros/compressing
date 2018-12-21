@@ -128,15 +128,16 @@ class VisualProofGraph:
             formula = self.vgraph.get_node_attribute(node, constants.FORMULA)
             self.vgraph.set_node_attribute(node, vga.VisualGraphAdapter.LABEL,
                                            formula)
+
             is_hypothesis = self.vgraph.get_node_attribute(
                 node, constants.HYPOTHESIS)
             if is_hypothesis:
-                self.vgraph.set_node_attribute(node,
-                                               vga.VisualGraphAdapter.LABEL,
-                                               "h")
+                self.vgraph.set_node_attribute(
+                    node, vga.VisualGraphAdapter.XLABEL, "h")
                 self.vgraph.set_node_attribute(node,
                                                vga.VisualGraphAdapter.COLOR,
                                                vga.VisualGraphAdapter.RED)
+
             del node.attr[constants.FORMULA], node.attr[constants.HYPOTHESIS]
 
     def __set_edges_layout(self):
@@ -169,9 +170,10 @@ class VisualProofGraph:
                                                str(edge.attr[constants.PATH]))
                 del edge.attr[constants.PATH]
             elif edge.attr[constants.COLLAPSED] == constants.TRUE:
+                xlabel = constants.LAMBDA + edge.attr[constants.LAMBDA_COLORS]
                 self.vgraph.set_edge_attribute(u, v,
                                                vga.VisualGraphAdapter.XLABEL,
-                                               constants.LAMBDA)
+                                               xlabel)
             else:
                 self.vgraph.set_edge_attribute(u, v,
                                                vga.VisualGraphAdapter.XLABEL,
@@ -246,8 +248,9 @@ class VisualProofGraph:
             if a_edges:
                 for (s, t) in a_edges:
                     self.__add_copy_node(collapse_graph, s)
-                    self.__add_copy_edge(collapse_graph, s, t)
                     select_nodes[node]["ancestor_sources"].append(s)
+                    if self.graph.has_edge(s, t):
+                        self.__add_copy_edge(collapse_graph, s, t)
 
             for ancestor in select_nodes[node]["ancestor_sources"]:
                 paths = self.graph.get_deductive_paths(node, ancestor)
@@ -288,12 +291,18 @@ class VisualProofGraph:
         common_neighbor = self.__check_common_neighbor(node1, node2)
         if self.__check_common_neighbor(node1, node2):
             successor_1 = successor_2 = common_neighbor
+
+            ancestor_1 = \
+                self.__get_ancestor_edges_redirect(node1, successor=successor_1)
         else:
-            successor_1, = self.graph.get_deductive_out_neighbors(node1)
+            successors_1 = self.graph.get_deductive_out_neighbors(node1)
             successor_2, = self.graph.get_deductive_out_neighbors(node2)
 
-        ancestor_1 = self.__get_ancestor_edges_redirect(node1,
-                                                        successor=successor_1)
+            ancestor_1 = []
+            for s1 in successors_1:
+                ancestor_1 += \
+                    self.__get_ancestor_edges_redirect(node1, successor=s1)
+
         ancestor_2 = self.__get_ancestor_edges_redirect(node2,
                                                         successor=successor_2)
 

@@ -425,6 +425,9 @@ class GraphAdapter(Graph):
         """
         if self.graph.has_node(source):
             if self.graph.has_node(target):
+                if self.graph.has_edge(source, target):
+                    message = "already exists"
+                    raise EdgeGraphError(source, target, message)
                 self.graph.add_edge(source, target)
                 if kwargs:
                     for attribute, value in kwargs.items():
