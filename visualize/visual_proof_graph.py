@@ -43,14 +43,14 @@ class VisualProofGraph:
         self.vgraph = vga.VisualGraphAdapter(self.graph)
         self.__draw(VisualProofGraph.INPUT)
 
-    def draw_final(self):
+    def draw_final(self, file_path=None):
         """
         Generates the visualization of the graph in 'graph' variable.
 
         The file generated is "pdf/final.pdf"
         """
         self.vgraph = vga.VisualGraphAdapter(self.graph)
-        self.__draw(VisualProofGraph.FINAL)
+        self.__draw(VisualProofGraph.FINAL, file_path)
 
     def draw_collapse(self, name, nodes, before=False, after=False,
                       premisses_1=None, premisses_2=None, a_edges=None):
@@ -102,7 +102,7 @@ class VisualProofGraph:
             self.vgraph.set_node_attribute(node, "color", "blue")
             self.vgraph.set_node_attribute(node, "style", "filled")
 
-    def __draw(self, name):
+    def __draw(self, name, file_path=None):
         """
         Generate file visualization from 'vgraph' variable.
 
@@ -111,7 +111,7 @@ class VisualProofGraph:
         self.vgraph.set_name(name)
         self.__set_nodes_layout()
         self.__set_edges_layout()
-        self.vgraph.draw_pdf()
+        self.vgraph.draw_pdf(file_path)
 
     def __set_nodes_layout(self):
         """

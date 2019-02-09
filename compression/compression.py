@@ -592,7 +592,6 @@ def redirect_ancestor_edges(graph, node, color):
                 graph.add_ancestor_edge(ancestor_source, deductive_source,
                                         path=list(path), new_color=0,
                                         change_color=(1, color))
-                print "add new color at index 1", color
             else:
                 graph.add_ancestor_edge(ancestor_source, deductive_source,
                                         path=list(path), new_color=0)

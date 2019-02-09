@@ -4,7 +4,7 @@ INTRODUÇÃO
 O sistema compressing é um compressor de provas em Lógica Minimal Implicacional.
 
 O sistema recebe como entrada um arquivo DOT contendo um grafo que representa a
-árvore de derivação da prova a ser comprimida, e produz como saída arquivos de
+árvore de derivação da prova a ser comprimida e produz como saída arquivos de
 visualização da prova, antes e após a compressão.
 
 

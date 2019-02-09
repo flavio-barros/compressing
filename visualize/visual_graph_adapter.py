@@ -54,14 +54,15 @@ class VisualGraphAdapter(vgr.VisualGraph):
         """
         self.name = name
 
-    def draw_pdf(self):
+    def draw_pdf(self, file_path=None):
         """
         Generates PDF file from instance variable 'graph'.
 
         The PDF file is saved in 'path' (instance variable) and with
         'name' (instance variable).
         """
-        file_path = self.path.format(self.name)
+        if not file_path:
+            file_path = self.path.format(self.name)
         self.agraph.draw(file_path, prog="dot")
 
     def get_nodes(self):

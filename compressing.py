@@ -56,7 +56,7 @@ def main():
                 rule_function = \
                     compression.identify_rule(proof_graph, node_u, node_v)
                 rule_name = rule_function.__name__
-                print "Collapse:", collapse, "(rule: ", rule_name, ")"
+                # print "Collapse:", collapse, "(rule: ", rule_name, ")"
                 graph_name = "collapse " + str(collapse) + "-" + rule_name
                 p1, p2, a_edges = \
                     visual_pg.draw_collapse(graph_name+"-Antes",
@@ -67,7 +67,7 @@ def main():
                                         after=True, premisses_1=p1,
                                         premisses_2=p2, a_edges=a_edges)
                 collapse += 1
-                print ""
+                # print ""
 
     compression.redirect_multi_ancestor_edges(proof_graph)
     compression.demote_ancestor_edges(proof_graph)
