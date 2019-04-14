@@ -36,8 +36,3 @@ TESTES
 Para executar os testes e gerar os logs, execute o comando:
 
 - python -m unittest discover --verbose
-
-AUTOR
------
-
-José Flávio Cavalcante Barros Júnior (Matricula: 1712666)
